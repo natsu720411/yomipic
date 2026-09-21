@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   Search,
@@ -13,126 +13,32 @@ import {
   ChevronRight,
   Sparkles,
   Trophy,
+  ExternalLink,
+  LoaderCircle,
 } from 'lucide-react'
 
 const seedWorks = [
-  {
-    id: 1,
-    type: 'manga',
-    title: '放課後、君と青い空',
-    author: '水野ひかり',
-    genre: '青春・恋愛',
-    score: 4.7,
-    reviews: 128,
-    saves: 942,
-    rank: 1,
-    trend: 18,
-    accent: 'linear-gradient(145deg,#7c3aed,#ec4899)',
-    tagline: '夕焼けの教室から始まる、少し不器用な青春。',
-  },
-  {
-    id: 2,
-    type: 'manga',
-    title: '境界線のランナー',
-    author: '高瀬ユウ',
-    genre: 'スポーツ',
-    score: 4.6,
-    reviews: 94,
-    saves: 721,
-    rank: 2,
-    trend: 31,
-    accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)',
-    tagline: '負けたくない理由を、走りながら見つけていく。',
-  },
-  {
-    id: 3,
-    type: 'manga',
-    title: '深夜0時の図書室',
-    author: '佐倉まお',
-    genre: 'ミステリー',
-    score: 4.5,
-    reviews: 83,
-    saves: 665,
-    rank: 3,
-    trend: 47,
-    accent: 'linear-gradient(145deg,#312e81,#6366f1)',
-    tagline: '閉館後だけ開く、不思議な図書室の秘密。',
-  },
-  {
-    id: 4,
-    type: 'manga',
-    title: 'となりの魔法使い',
-    author: '南しずく',
-    genre: 'ファンタジー',
-    score: 4.4,
-    reviews: 61,
-    saves: 508,
-    rank: 4,
-    trend: 12,
-    accent: 'linear-gradient(145deg,#059669,#84cc16)',
-    tagline: '普通の大学生活に、魔法がひとつ混ざったら。',
-  },
-  {
-    id: 5,
-    type: 'novel',
-    title: '君が忘れた夏の名前',
-    author: '朝倉 澪',
-    genre: '青春小説',
-    score: 4.8,
-    reviews: 156,
-    saves: 1102,
-    rank: 1,
-    trend: 26,
-    accent: 'linear-gradient(145deg,#0284c7,#f59e0b)',
-    tagline: '思い出せない約束を追う、ひと夏の物語。',
-  },
-  {
-    id: 6,
-    type: 'novel',
-    title: '透明な夜に手紙を書く',
-    author: '白石 遥',
-    genre: '恋愛小説',
-    score: 4.7,
-    reviews: 131,
-    saves: 980,
-    rank: 2,
-    trend: 39,
-    accent: 'linear-gradient(145deg,#4338ca,#a855f7)',
-    tagline: '届かないはずの手紙から始まる静かな恋。',
-  },
-  {
-    id: 7,
-    type: 'novel',
-    title: '珈琲店ノクターンの事件簿',
-    author: '久遠 理人',
-    genre: 'ミステリー',
-    score: 4.5,
-    reviews: 77,
-    saves: 604,
-    rank: 3,
-    trend: 52,
-    accent: 'linear-gradient(145deg,#78350f,#d97706)',
-    tagline: '一杯の珈琲と、小さな謎を解く夜。',
-  },
-  {
-    id: 8,
-    type: 'novel',
-    title: '星降る駅で待っている',
-    author: '伊月かなえ',
-    genre: 'ファンタジー',
-    score: 4.4,
-    reviews: 69,
-    saves: 577,
-    rank: 4,
-    trend: 21,
-    accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)',
-    tagline: '終電のあとにだけ現れる駅をめぐる物語。',
-  },
+  { id: 1, type: 'manga', title: '放課後、君と青い空', author: '水野ひかり', genre: '青春・恋愛', score: 4.7, reviews: 128, saves: 942, rank: 1, trend: 18, accent: 'linear-gradient(145deg,#7c3aed,#ec4899)', tagline: '夕焼けの教室から始まる、少し不器用な青春。' },
+  { id: 2, type: 'manga', title: '境界線のランナー', author: '高瀬ユウ', genre: 'スポーツ', score: 4.6, reviews: 94, saves: 721, rank: 2, trend: 31, accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)', tagline: '負けたくない理由を、走りながら見つけていく。' },
+  { id: 3, type: 'manga', title: '深夜0時の図書室', author: '佐倉まお', genre: 'ミステリー', score: 4.5, reviews: 83, saves: 665, rank: 3, trend: 47, accent: 'linear-gradient(145deg,#312e81,#6366f1)', tagline: '閉館後だけ開く、不思議な図書室の秘密。' },
+  { id: 4, type: 'manga', title: 'となりの魔法使い', author: '南しずく', genre: 'ファンタジー', score: 4.4, reviews: 61, saves: 508, rank: 4, trend: 12, accent: 'linear-gradient(145deg,#059669,#84cc16)', tagline: '普通の大学生活に、魔法がひとつ混ざったら。' },
+  { id: 5, type: 'novel', title: '君が忘れた夏の名前', author: '朝倉 澪', genre: '青春小説', score: 4.8, reviews: 156, saves: 1102, rank: 1, trend: 26, accent: 'linear-gradient(145deg,#0284c7,#f59e0b)', tagline: '思い出せない約束を追う、ひと夏の物語。' },
+  { id: 6, type: 'novel', title: '透明な夜に手紙を書く', author: '白石 遥', genre: '恋愛小説', score: 4.7, reviews: 131, saves: 980, rank: 2, trend: 39, accent: 'linear-gradient(145deg,#4338ca,#a855f7)', tagline: '届かないはずの手紙から始まる静かな恋。' },
+  { id: 7, type: 'novel', title: '珈琲店ノクターンの事件簿', author: '久遠 理人', genre: 'ミステリー', score: 4.5, reviews: 77, saves: 604, rank: 3, trend: 52, accent: 'linear-gradient(145deg,#78350f,#d97706)', tagline: '一杯の珈琲と、小さな謎を解く夜。' },
+  { id: 8, type: 'novel', title: '星降る駅で待っている', author: '伊月かなえ', genre: 'ファンタジー', score: 4.4, reviews: 69, saves: 577, rank: 4, trend: 21, accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)', tagline: '終電のあとにだけ現れる駅をめぐる物語。' },
 ]
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
 
 function Cover({ work, small = false }) {
+  if (work.image) {
+    return (
+      <div className={`cover cover-photo ${small ? 'cover-small' : ''}`}>
+        <img src={work.image} alt={`${work.title}の書影`} loading="lazy" />
+      </div>
+    )
+  }
+
   return (
     <div className={`cover ${small ? 'cover-small' : ''}`} style={{ background: work.accent }}>
       <div className="cover-mark">Y</div>
@@ -145,11 +51,46 @@ function Cover({ work, small = false }) {
 }
 
 function Stars({ score }) {
+  if (!score) return <span className="score muted-score">評価前</span>
   return (
     <span className="score">
       <Star size={15} fill="currentColor" />
-      {score.toFixed(1)}
+      {Number(score).toFixed(1)}
     </span>
+  )
+}
+
+function ResultCard({ work, saved, onSave, onReview }) {
+  return (
+    <article className="work-card real-work-card">
+      <Cover work={work} />
+      <div className="work-body">
+        <div className="work-meta">{work.genre || '書籍'}</div>
+        <h3>{work.title}</h3>
+        <p className="author">{work.author || '著者情報なし'}</p>
+        <div className="metrics result-metrics">
+          <Stars score={work.score} />
+          {work.ratingsCount ? <span><MessageCircle size={14} /> {work.ratingsCount}</span> : null}
+        </div>
+        <div className="card-actions">
+          <button className="ghost-button" onClick={() => onReview(work)}>
+            <PenLine size={16} /> 感想
+          </button>
+          {work.infoLink ? (
+            <a className="info-link" href={work.infoLink} target="_blank" rel="noreferrer" aria-label="Google Booksで作品情報を見る">
+              <ExternalLink size={17} />
+            </a>
+          ) : null}
+          <button
+            className={`save-button ${saved ? 'saved' : ''}`}
+            onClick={() => onSave(work.id)}
+            aria-label={saved ? '読みたいから外す' : '読みたいに追加'}
+          >
+            {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+          </button>
+        </div>
+      </div>
+    </article>
   )
 }
 
@@ -157,26 +98,36 @@ export default function App() {
   const [type, setType] = useState('manga')
   const [sort, setSort] = useState('weekly')
   const [query, setQuery] = useState('')
-  const [saved, setSaved] = useState(() => new Set())
+  const [saved, setSaved] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('yomipic-saved') || '[]')) } catch { return new Set() }
+  })
   const [selected, setSelected] = useState(null)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [rating, setRating] = useState(5)
   const [mood, setMood] = useState('')
   const [reviewText, setReviewText] = useState('')
-  const [postedReviews, setPostedReviews] = useState([])
+  const [postedReviews, setPostedReviews] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('yomipic-reviews') || '[]') } catch { return [] }
+  })
+  const [liveResults, setLiveResults] = useState([])
+  const [liveLoading, setLiveLoading] = useState(false)
+  const [liveError, setLiveError] = useState('')
+  const [hasSearched, setHasSearched] = useState(false)
+
+  useEffect(() => {
+    localStorage.setItem('yomipic-saved', JSON.stringify([...saved]))
+  }, [saved])
+
+  useEffect(() => {
+    localStorage.setItem('yomipic-reviews', JSON.stringify(postedReviews))
+  }, [postedReviews])
 
   const works = useMemo(() => {
     let list = seedWorks.filter((work) => work.type === type)
-    if (query.trim()) {
-      const q = query.toLowerCase()
-      list = list.filter((work) =>
-        [work.title, work.author, work.genre].some((value) => value.toLowerCase().includes(q)),
-      )
-    }
     if (sort === 'rising') return [...list].sort((a, b) => b.trend - a.trend)
     if (sort === 'rated') return [...list].sort((a, b) => b.score - a.score)
     return [...list].sort((a, b) => a.rank - b.rank)
-  }, [type, sort, query])
+  }, [type, sort])
 
   const toggleSaved = (id) => {
     setSaved((prev) => {
@@ -201,14 +152,40 @@ export default function App() {
       {
         id: Date.now(),
         workId: selected.id,
+        work: selected,
         rating,
         mood,
         text: reviewText.trim(),
+        createdAt: new Date().toISOString(),
       },
       ...prev,
     ])
     setReviewOpen(false)
     setReviewText('')
+  }
+
+  const searchBooks = async (event, forcedQuery) => {
+    event?.preventDefault()
+    const term = (forcedQuery ?? query).trim()
+    if (!term) return
+
+    if (forcedQuery !== undefined) setQuery(forcedQuery)
+    setHasSearched(true)
+    setLiveLoading(true)
+    setLiveError('')
+
+    try {
+      const response = await fetch(`/api/books?q=${encodeURIComponent(term)}&type=${type}`)
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '検索に失敗しました')
+      setLiveResults(data.items || [])
+      setTimeout(() => document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
+    } catch (error) {
+      setLiveResults([])
+      setLiveError(error.message || '検索に失敗しました')
+    } finally {
+      setLiveLoading(false)
+    }
   }
 
   return (
@@ -238,23 +215,24 @@ export default function App() {
             <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
             <p>漫画と小説の人気ランキングをチェック。読んだ作品には、気軽にひとこと感想を残せます。</p>
 
-            <div className="search-box">
+            <form className="search-box" onSubmit={searchBooks}>
               <Search size={21} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="作品名・作者名・ジャンルから探す"
+                placeholder="実在する作品名・作者名から探す"
                 aria-label="作品検索"
               />
-              <kbd>検索</kbd>
-            </div>
+              <button className="search-submit" type="submit" disabled={liveLoading}>
+                {liveLoading ? <LoaderCircle size={17} className="spin" /> : '検索'}
+              </button>
+            </form>
 
             <div className="hero-chips">
-              <span>人気:</span>
-              <button onClick={() => setQuery('恋愛')}>恋愛</button>
-              <button onClick={() => setQuery('ミステリー')}>ミステリー</button>
-              <button onClick={() => setQuery('青春')}>青春</button>
-              <button onClick={() => setQuery('ファンタジー')}>ファンタジー</button>
+              <span>検索例:</span>
+              {['青春', 'ミステリー', '恋愛', 'ファンタジー'].map((word) => (
+                <button key={word} onClick={() => searchBooks(null, word)}>{word}</button>
+              ))}
             </div>
           </div>
 
@@ -262,12 +240,46 @@ export default function App() {
           <div className="hero-orb orb-two" />
         </section>
 
+        {hasSearched && (
+          <section className="content-section search-results-section" id="search-results">
+            <div className="section-top">
+              <div>
+                <span className="section-kicker">REAL BOOK SEARCH</span>
+                <h2>「{query}」の検索結果</h2>
+                <p>Google Booksの書籍データから検索しています。</p>
+              </div>
+              <div className="type-switch" role="tablist" aria-label="検索する作品タイプ">
+                <button className={type === 'manga' ? 'active' : ''} onClick={() => setType('manga')}>漫画</button>
+                <button className={type === 'novel' ? 'active' : ''} onClick={() => setType('novel')}>小説</button>
+              </div>
+            </div>
+
+            {liveLoading ? (
+              <div className="search-status"><LoaderCircle size={28} className="spin" /><p>作品を探しています…</p></div>
+            ) : liveError ? (
+              <div className="search-status error-status">
+                <Search size={26} />
+                <h3>実作品検索を使う準備があと1つ必要です</h3>
+                <p>{liveError}</p>
+              </div>
+            ) : liveResults.length ? (
+              <div className="ranking-grid">
+                {liveResults.map((work) => (
+                  <ResultCard key={work.id} work={work} saved={saved.has(work.id)} onSave={toggleSaved} onReview={openReview} />
+                ))}
+              </div>
+            ) : (
+              <div className="search-status"><Search size={28} /><h3>作品が見つかりませんでした</h3><p>タイトルや作者名を変えて検索してみてください。</p></div>
+            )}
+          </section>
+        )}
+
         <section className="content-section" id="ranking">
           <div className="section-top">
             <div>
               <span className="section-kicker">RANKING</span>
               <h2>いま読まれている作品</h2>
-              <p>ヨミピク内の反応をもとにしたサンプルランキングです。</p>
+              <p>ここは独自ランキング機能のデザイン確認用サンプルです。次の段階で実データ化します。</p>
             </div>
 
             <div className="type-switch" role="tablist" aria-label="作品タイプ">
@@ -288,61 +300,53 @@ export default function App() {
             </button>
           </div>
 
-          {works.length ? (
-            <div className="ranking-grid">
-              {works.map((work, index) => (
-                <article className="work-card" key={work.id}>
-                  <div className={`rank-badge rank-${index + 1}`}>
-                    {index < 3 ? <Trophy size={13} /> : null}
-                    {index + 1}
+          <div className="ranking-grid">
+            {works.map((work, index) => (
+              <article className="work-card" key={work.id}>
+                <div className={`rank-badge rank-${index + 1}`}>
+                  {index < 3 ? <Trophy size={13} /> : null}
+                  {index + 1}
+                </div>
+                <Cover work={work} />
+                <div className="work-body">
+                  <div className="work-meta">{work.genre}</div>
+                  <h3>{work.title}</h3>
+                  <p className="author">{work.author}</p>
+                  <p className="tagline">{work.tagline}</p>
+                  <div className="metrics">
+                    <Stars score={work.score} />
+                    <span><MessageCircle size={14} /> {work.reviews + postedReviews.filter((r) => r.workId === work.id).length}</span>
+                    <span><Bookmark size={14} /> {work.saves + (saved.has(work.id) ? 1 : 0)}</span>
                   </div>
-                  <Cover work={work} />
-                  <div className="work-body">
-                    <div className="work-meta">{work.genre}</div>
-                    <h3>{work.title}</h3>
-                    <p className="author">{work.author}</p>
-                    <p className="tagline">{work.tagline}</p>
-                    <div className="metrics">
-                      <Stars score={work.score} />
-                      <span><MessageCircle size={14} /> {work.reviews + postedReviews.filter((r) => r.workId === work.id).length}</span>
-                      <span><Bookmark size={14} /> {work.saves + (saved.has(work.id) ? 1 : 0)}</span>
-                    </div>
-                    <div className="card-actions">
-                      <button className="ghost-button" onClick={() => openReview(work)}>
-                        <PenLine size={16} /> 感想
-                      </button>
-                      <button
-                        className={`save-button ${saved.has(work.id) ? 'saved' : ''}`}
-                        onClick={() => toggleSaved(work.id)}
-                        aria-label={saved.has(work.id) ? '読みたいから外す' : '読みたいに追加'}
-                      >
-                        {saved.has(work.id) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-                      </button>
-                    </div>
+                  <div className="card-actions">
+                    <button className="ghost-button" onClick={() => openReview(work)}>
+                      <PenLine size={16} /> 感想
+                    </button>
+                    <button
+                      className={`save-button ${saved.has(work.id) ? 'saved' : ''}`}
+                      onClick={() => toggleSaved(work.id)}
+                      aria-label={saved.has(work.id) ? '読みたいから外す' : '読みたいに追加'}
+                    >
+                      {saved.has(work.id) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                    </button>
                   </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <Search size={28} />
-              <h3>該当する作品がありません</h3>
-              <p>検索語を変えてもう一度試してみてください。</p>
-              <button onClick={() => setQuery('')}>検索をリセット</button>
-            </div>
-          )}
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="discover-section" id="discover">
           <div className="discover-copy">
             <span className="section-kicker">DISCOVER</span>
             <h2>気分から、次の作品を探そう。</h2>
-            <p>ランキングだけでは見つからない一冊へ。今の気分を選ぶだけで作品探しをもっと気軽に。</p>
+            <p>ランキングだけでは見つからない一冊へ。気分に近い言葉で実作品を検索できます。</p>
           </div>
           <div className="mood-grid">
-            {moods.map((item) => (
-              <button key={item} onClick={() => setQuery('')}>{item}<ChevronRight size={17} /></button>
-            ))}
+            {moods.map((item) => {
+              const word = item.replace(/^\S+\s/, '')
+              return <button key={item} onClick={() => searchBooks(null, word)}>{item}<ChevronRight size={17} /></button>
+            })}
           </div>
         </section>
 
@@ -351,16 +355,17 @@ export default function App() {
             <div>
               <span className="section-kicker">REVIEWS</span>
               <h2>みんなのひとこと感想</h2>
-              <p>長文じゃなくてもOK。読んだ直後の気持ちを残せます。</p>
+              <p>長文じゃなくてもOK。あなたが投稿した感想はこの端末に保存されます。</p>
             </div>
           </div>
 
           <div className="review-feed">
-            {postedReviews.length > 0 ? postedReviews.slice(0, 4).map((review) => {
-              const work = seedWorks.find((item) => item.id === review.workId)
+            {postedReviews.length > 0 ? postedReviews.slice(0, 6).map((review) => {
+              const work = review.work || seedWorks.find((item) => item.id === review.workId)
+              if (!work) return null
               return (
                 <article className="review-card" key={review.id}>
-                  <div className="review-user"><span>Y</span><div><strong>あなた</strong><small>たった今</small></div></div>
+                  <div className="review-user"><span>Y</span><div><strong>あなた</strong><small>投稿済み</small></div></div>
                   <div className="review-work"><Cover work={work} small /><div><small>{work.genre}</small><strong>{work.title}</strong></div></div>
                   <div className="review-score"><Stars score={review.rating} /> {review.mood && <span>{review.mood}</span>}</div>
                   <p>{review.text}</p>
@@ -369,13 +374,13 @@ export default function App() {
             }) : (
               <>
                 <article className="review-card">
-                  <div className="review-user"><span>M</span><div><strong>mio</strong><small>12分前</small></div></div>
+                  <div className="review-user"><span>M</span><div><strong>mio</strong><small>サンプル</small></div></div>
                   <div className="review-work"><Cover work={seedWorks[0]} small /><div><small>{seedWorks[0].genre}</small><strong>{seedWorks[0].title}</strong></div></div>
                   <div className="review-score"><Stars score={5} /><span>💕 キュン</span></div>
                   <p>会話のテンポが好き。放課後の空気感がすごくリアルで、一気に読んだ。</p>
                 </article>
                 <article className="review-card">
-                  <div className="review-user"><span>K</span><div><strong>kei</strong><small>31分前</small></div></div>
+                  <div className="review-user"><span>K</span><div><strong>kei</strong><small>サンプル</small></div></div>
                   <div className="review-work"><Cover work={seedWorks[6]} small /><div><small>{seedWorks[6].genre}</small><strong>{seedWorks[6].title}</strong></div></div>
                   <div className="review-score"><Stars score={4} /><span>🤯 衝撃</span></div>
                   <p>短い章ごとに謎がほどけていく感じが気持ちいい。寝る前に少しずつ読むのにも良さそう。</p>
@@ -389,16 +394,16 @@ export default function App() {
           <div>
             <span className="section-kicker light">YOUR BOOKSHELF</span>
             <h2>あなたの「好き」を、本棚に。</h2>
-            <p>読みたい作品や読んだ作品を集めて、自分だけの本棚をつくろう。</p>
+            <p>「読みたい」はこの端末に保存されるので、ページを閉じても残ります。</p>
           </div>
-          <button onClick={() => toggleSaved(seedWorks[0].id)}>読みたい作品を追加する <ChevronRight size={18} /></button>
+          <a href="#search-results">作品を探す <ChevronRight size={18} /></a>
         </section>
       </main>
 
       <footer>
         <a className="brand footer-brand" href="#top"><span className="brand-icon"><BookOpen size={19} /></span><span>ヨミピク</span></a>
         <p>漫画・小説のランキングと感想を楽しむ読書コミュニティ。</p>
-        <small>© 2026 YomiPic. 掲載中の作品データは初期デモ用の架空データです。</small>
+        <small>© 2026 YomiPic. ランキング部分の作品は現在UI確認用の架空データです。実作品検索にはGoogle Booksを利用します。</small>
       </footer>
 
       {reviewOpen && selected && (
