@@ -80,13 +80,15 @@ function Stars({ score }) {
   )
 }
 
-function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, saving }) {
+function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, onOpen, saving }) {
   return (
     <article className="work-card real-work-card">
-      <Cover work={work} />
+      <button className="work-cover-button" onClick={() => onOpen(work)} aria-label={`${work.title}の詳細を見る`}>
+        <Cover work={work} />
+      </button>
       <div className="work-body">
         <div className="work-meta">{work.genre || '書籍'}</div>
-        <h3>{work.title}</h3>
+        <button className="work-title-button" onClick={() => onOpen(work)}>{work.title}</button>
         <p className="author">{work.author || '著者情報なし'}</p>
         <div className="metrics result-metrics">
           <Stars score={work.score} />
@@ -125,6 +127,7 @@ export default function App() {
     try { return new Set(JSON.parse(localStorage.getItem('yomipic-saved') || '[]')) } catch { return new Set() }
   })
   const [selected, setSelected] = useState(null)
+  const [detailWork, setDetailWork] = useState(null)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [rating, setRating] = useState(5)
   const [mood, setMood] = useState('')
@@ -217,6 +220,33 @@ export default function App() {
   }, [communityWorks, type, sort])
 
   const rankingIsEmpty = works.length === 0
+
+  const detailDbId = detailWork ? (detailWork.dbId || dbWorkId(detailWork)) : ''
+  const detailReviews = useMemo(
+    () => detailDbId ? sharedReviews.filter((review) => review.work_id === detailDbId) : [],
+    [detailDbId, sharedReviews],
+  )
+  const detailAverage = detailReviews.length
+    ? detailReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / detailReviews.length
+    : 0
+  const detailSaveCount = detailDbId ? (saveCountMap.get(detailDbId) || 0) : 0
+
+  useEffect(() => {
+    if (!detailWork && !reviewOpen) return undefined
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        if (reviewOpen) setReviewOpen(false)
+        else setDetailWork(null)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [detailWork, reviewOpen])
 
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
@@ -424,6 +454,7 @@ export default function App() {
                       reviewCount={reviewCountMap.get(id) || 0}
                       onSave={saveWork}
                       onReview={openReview}
+                      onOpen={setDetailWork}
                     />
                   )
                 })}
@@ -474,10 +505,12 @@ export default function App() {
                     {index < 3 ? <Trophy size={13} /> : null}
                     {index + 1}
                   </div>
-                  <Cover work={work} />
+                  <button className="work-cover-button" onClick={() => setDetailWork(work)} aria-label={`${work.title}の詳細を見る`}>
+                    <Cover work={work} />
+                  </button>
                   <div className="work-body">
                     <div className="work-meta">{work.genre}</div>
-                    <h3>{work.title}</h3>
+                    <button className="work-title-button" onClick={() => setDetailWork(work)}>{work.title}</button>
                     <p className="author">{work.author}</p>
                     <p className="tagline">{work.tagline}</p>
                     <div className="metrics">
@@ -573,6 +606,116 @@ export default function App() {
         <p>漫画・小説のランキングと感想を楽しむ読書コミュニティ。</p>
         <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。共有ランキングはヨミピク内の反応を集計しています。</small>
       </footer>
+
+      {detailWork && (
+        <div className="detail-page" role="dialog" aria-modal="true" aria-label={`${detailWork.title}の作品詳細`}>
+          <div className="detail-header">
+            <button className="detail-back" onClick={() => setDetailWork(null)}>
+              <ChevronRight size={18} />
+              戻る
+            </button>
+            <a className="brand detail-brand" href="#top" onClick={() => setDetailWork(null)}>
+              <span className="brand-icon"><BookOpen size={18} /></span>
+              <span>ヨミピク</span>
+            </a>
+            <button className="detail-close" onClick={() => setDetailWork(null)} aria-label="詳細を閉じる">
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="detail-scroll">
+            <section className="detail-hero">
+              <div className="detail-cover-wrap">
+                <Cover work={detailWork} />
+              </div>
+
+              <div className="detail-main">
+                <span className="detail-type">{detailWork.type === 'manga' ? '漫画' : '小説'} ・ {detailWork.genre || '書籍'}</span>
+                <h1>{detailWork.title}</h1>
+                <p className="detail-author">{detailWork.author || '著者情報なし'}</p>
+
+                <div className="detail-stats">
+                  <div>
+                    <strong>{detailAverage ? detailAverage.toFixed(1) : '—'}</strong>
+                    <span><Star size={15} fill={detailAverage ? 'currentColor' : 'none'} /> ヨミピク評価</span>
+                  </div>
+                  <div>
+                    <strong>{detailReviews.length}</strong>
+                    <span><MessageCircle size={15} /> 感想</span>
+                  </div>
+                  <div>
+                    <strong>{detailSaveCount}</strong>
+                    <span><Bookmark size={15} /> 読みたい</span>
+                  </div>
+                </div>
+
+                <div className="detail-actions">
+                  <button className="detail-review-button" onClick={() => openReview(detailWork)}>
+                    <PenLine size={17} /> 感想を書く
+                  </button>
+                  <button
+                    className={`wishlist-button detail-wishlist ${saved.has(detailDbId) ? 'saved' : ''}`}
+                    onClick={() => saveWork(detailWork)}
+                    disabled={saved.has(detailDbId) || savingId === detailDbId}
+                  >
+                    {savingId === detailDbId
+                      ? <LoaderCircle size={17} className="spin" />
+                      : saved.has(detailDbId)
+                        ? <BookmarkCheck size={17} />
+                        : <Bookmark size={17} />}
+                    <span>{saved.has(detailDbId) ? '読みたい登録済み' : '読みたい'}</span>
+                  </button>
+                  {detailWork.infoLink && (
+                    <a className="detail-info-link" href={detailWork.infoLink} target="_blank" rel="noreferrer">
+                      <ExternalLink size={17} /> 書籍情報
+                    </a>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="detail-reviews-section">
+              <div className="detail-section-head">
+                <div>
+                  <span className="section-kicker">REVIEWS</span>
+                  <h2>この作品の感想</h2>
+                </div>
+                <button onClick={() => openReview(detailWork)}><PenLine size={16} /> 感想を書く</button>
+              </div>
+
+              {detailReviews.length ? (
+                <div className="detail-review-list">
+                  {detailReviews.map((review) => (
+                    <article className="detail-review-item" key={review.id}>
+                      <div className="detail-review-top">
+                        <div className="review-user">
+                          <span>Y</span>
+                          <div>
+                            <strong>ヨミピク読者</strong>
+                            <small>{new Date(review.created_at).toLocaleDateString('ja-JP')}</small>
+                          </div>
+                        </div>
+                        <div className="review-score">
+                          <Stars score={review.rating} />
+                          {review.mood && <span>{review.mood}</span>}
+                        </div>
+                      </div>
+                      <p>{review.body}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="detail-empty">
+                  <MessageCircle size={28} />
+                  <h3>まだ感想がありません</h3>
+                  <p>この作品の最初の感想を投稿してみましょう。</p>
+                  <button onClick={() => openReview(detailWork)}>感想を書く</button>
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
+      )}
 
       {reviewOpen && selected && (
         <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setReviewOpen(false)}>
