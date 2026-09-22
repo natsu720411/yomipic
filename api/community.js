@@ -55,10 +55,20 @@ function validWork(body) {
   }
 }
 
+function publicReview(row, deviceId) {
+  if (!row) return null
+  const { device_id: rowDeviceId, ...review } = row
+  return {
+    ...review,
+    is_mine: Boolean(deviceId && rowDeviceId === deviceId),
+  }
+}
+
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const kind = String(req.query.kind || 'all')
+      const deviceId = clean(req.query.deviceId, 200)
 
       if (kind === 'write-check') {
         try {
@@ -99,9 +109,9 @@ export default async function handler(req, res) {
 
       if (kind === 'reviews') {
         const reviews = await supabaseFetch(
-          '/rest/v1/reviews?select=id,work_id,title,author,image_url,genre,rating,mood,body,created_at&order=created_at.desc&limit=100'
+          '/rest/v1/reviews?select=id,work_id,title,author,image_url,genre,rating,mood,body,device_id,created_at&order=created_at.desc&limit=100'
         )
-        return res.status(200).json({ reviews: reviews || [] })
+        return res.status(200).json({ reviews: (reviews || []).map((review) => publicReview(review, deviceId)) })
       }
 
       if (kind === 'saves') {
@@ -112,19 +122,48 @@ export default async function handler(req, res) {
       }
 
       const [reviews, saves] = await Promise.all([
-        supabaseFetch('/rest/v1/reviews?select=id,work_id,title,author,image_url,genre,rating,mood,body,created_at&order=created_at.desc&limit=100'),
+        supabaseFetch('/rest/v1/reviews?select=id,work_id,title,author,image_url,genre,rating,mood,body,device_id,created_at&order=created_at.desc&limit=100'),
         supabaseFetch('/rest/v1/saves?select=id,work_id,title,author,image_url,genre,created_at&order=created_at.desc&limit=1000'),
       ])
 
-      return res.status(200).json({ reviews: reviews || [], saves: saves || [] })
+      return res.status(200).json({
+        reviews: (reviews || []).map((review) => publicReview(review, deviceId)),
+        saves: saves || [],
+      })
     }
 
     if (req.method === 'POST') {
       const kind = req.body?.kind
       const deviceId = clean(req.body?.deviceId, 200)
+
+      if (!deviceId) {
+        return res.status(400).json({ error: '端末情報が不足しています' })
+      }
+
+      if (kind === 'delete-review') {
+        const reviewId = Number(req.body?.reviewId)
+        if (!Number.isInteger(reviewId) || reviewId <= 0) {
+          return res.status(400).json({ error: '削除する感想を確認できません' })
+        }
+
+        const deleted = await supabaseFetch('/rest/v1/rpc/delete_review', {
+          method: 'POST',
+          body: JSON.stringify({
+            p_review_id: reviewId,
+            p_device_id: deviceId,
+          }),
+        })
+
+        if ((Number(deleted) || 0) < 1) {
+          return res.status(403).json({ error: 'この感想は削除できません' })
+        }
+
+        return res.status(200).json({ deleted: Number(deleted) || 0 })
+      }
+
       const work = validWork(req.body)
 
-      if (!deviceId || !work.workId) {
+      if (!work.workId) {
         return res.status(400).json({ error: '必要な情報が不足しています' })
       }
 
@@ -192,7 +231,7 @@ export default async function handler(req, res) {
           }),
         })
 
-        return res.status(201).json({ review: rows?.[0] || null })
+        return res.status(201).json({ review: publicReview(rows?.[0] || null, deviceId) })
       }
 
       return res.status(400).json({ error: '不明な操作です' })
