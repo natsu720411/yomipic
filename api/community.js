@@ -124,8 +124,24 @@ export default async function handler(req, res) {
       const deviceId = clean(req.body?.deviceId, 200)
       const work = validWork(req.body)
 
-      if (!deviceId || !work.workId || !work.title) {
+      if (!deviceId || !work.workId) {
         return res.status(400).json({ error: '必要な情報が不足しています' })
+      }
+
+      if (kind === 'unsave') {
+        const deleted = await supabaseFetch('/rest/v1/rpc/delete_save', {
+          method: 'POST',
+          body: JSON.stringify({
+            p_work_id: work.workId,
+            p_device_id: deviceId,
+          }),
+        })
+
+        return res.status(200).json({ deleted: Number(deleted) || 0 })
+      }
+
+      if (!work.title) {
+        return res.status(400).json({ error: '作品情報が不足しています' })
       }
 
       if (kind === 'save') {
