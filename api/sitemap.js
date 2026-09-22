@@ -46,22 +46,38 @@ function detailUrl(workId) {
   return `https://yomipic.vercel.app/?${params.toString()}`
 }
 
-const discoveryPages = [
-  ['恋愛', 'manga'],
-  ['青春', 'manga'],
-  ['ファンタジー', 'manga'],
-  ['ミステリー', 'manga'],
-  ['感動', 'manga'],
-  ['恋愛', 'novel'],
-  ['青春', 'novel'],
-  ['ミステリー', 'novel'],
-  ['ファンタジー', 'novel'],
-  ['感動', 'novel'],
+const landingPages = [
+  '/ranking/manga',
+  '/ranking/novel',
+  '/theme/manga/romance',
+  '/theme/manga/youth',
+  '/theme/manga/fantasy',
+  '/theme/manga/mystery',
+  '/theme/manga/emotional',
+  '/theme/manga/isekai',
+  '/theme/manga/sports',
+  '/theme/manga/horror',
+  '/theme/novel/romance',
+  '/theme/novel/youth',
+  '/theme/novel/mystery',
+  '/theme/novel/fantasy',
+  '/theme/novel/emotional',
+  '/theme/novel/sf',
+  '/theme/novel/horror',
+  '/theme/novel/historical',
 ]
 
-function discoveryUrl(query, type) {
-  const params = new URLSearchParams({ q: query, type })
-  return `https://yomipic.vercel.app/?${params.toString()}`
+function landingUrl(path) {
+  return `https://yomipic.vercel.app${path}`
+}
+
+function urlEntry(url, { lastmod, changefreq = 'weekly', priority = '0.8' } = {}) {
+  return `  <url>
+    <loc>${xmlEscape(url)}</loc>
+    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`
 }
 
 export default async function handler(req, res) {
@@ -69,41 +85,31 @@ export default async function handler(req, res) {
     return res.status(405).send('Method Not Allowed')
   }
 
+  const today = new Date().toISOString().slice(0, 10)
+
   try {
     const [reviews, saves] = await Promise.all([
       supabaseFetch('/rest/v1/reviews?select=work_id,created_at&order=created_at.desc&limit=1000'),
       supabaseFetch('/rest/v1/saves?select=work_id,created_at&order=created_at.desc&limit=5000'),
     ])
 
-    const pages = new Map()
+    const detailPages = new Map()
 
     for (const row of [...(reviews || []), ...(saves || [])]) {
       const url = detailUrl(row.work_id)
       if (!url) continue
 
-      const previous = pages.get(url)
+      const previous = detailPages.get(url)
       const date = row.created_at ? new Date(row.created_at) : null
-      if (!previous || (date && date > previous)) pages.set(url, date)
+      if (!previous || (date && date > previous)) detailPages.set(url, date)
     }
 
     const urls = [
-      `  <url>
-    <loc>https://yomipic.vercel.app/</loc>
-    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>`,
-      ...discoveryPages.map(([query, type]) => `  <url>
-    <loc>${xmlEscape(discoveryUrl(query, type))}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`),
-      ...[...pages.entries()].map(([url, date]) => `  <url>
-    <loc>${xmlEscape(url)}</loc>
-    ${date ? `<lastmod>${date.toISOString().slice(0, 10)}</lastmod>` : ''}
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`),
+      urlEntry('https://yomipic.vercel.app/', { lastmod: today, changefreq: 'daily', priority: '1.0' }),
+      ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: today, priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
+      ...[...detailPages.entries()].map(([url, date]) =>
+        urlEntry(url, { lastmod: date ? date.toISOString().slice(0, 10) : undefined, priority: '0.7' })
+      ),
     ]
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -117,7 +123,7 @@ ${urls.join('\n')}
   } catch {
     const fallbackUrls = [
       'https://yomipic.vercel.app/',
-      ...discoveryPages.map(([query, type]) => discoveryUrl(query, type)),
+      ...landingPages.map(landingUrl),
     ]
     const fallback = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
