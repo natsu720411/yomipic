@@ -3,6 +3,14 @@
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
+    },
+    {
+      "source": "/ranking/:type",
+      "destination": "/"
+    },
+    {
+      "source": "/theme/:type/:slug",
+      "destination": "/"
     }
   ]
 }
