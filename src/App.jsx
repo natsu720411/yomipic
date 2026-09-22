@@ -417,6 +417,33 @@ export default function App() {
     return map
   }, [sharedReviews])
 
+  const seriesStatsMap = useMemo(() => {
+    const map = new Map()
+
+    const ensure = (row) => {
+      const [rowType = 'book'] = String(row.work_id || '').split('::')
+      const key = seriesKey(rowType, row.title)
+      if (!map.has(key)) map.set(key, { saves: 0, reviews: 0, ratingTotal: 0 })
+      return map.get(key)
+    }
+
+    for (const row of sharedSaves) {
+      ensure(row).saves += 1
+    }
+
+    for (const row of sharedReviews) {
+      const stats = ensure(row)
+      stats.reviews += 1
+      stats.ratingTotal += Number(row.rating || 0)
+    }
+
+    for (const stats of map.values()) {
+      stats.score = stats.reviews ? stats.ratingTotal / stats.reviews : 0
+    }
+
+    return map
+  }, [sharedSaves, sharedReviews])
+
   const communityWorks = useMemo(() => {
     const map = new Map()
 
@@ -954,17 +981,23 @@ export default function App() {
     if (!term) return
 
     const targetType = forcedType === 'novel' ? 'novel' : (forcedType === 'manga' ? 'manga' : type)
-    const topic = discoveryTopics.find((item) => item.query === term && item.type === targetType)
+    const landing = landingForQuery(term, targetType)
 
     if (forcedQuery !== undefined) setQuery(forcedQuery)
     if (forcedType) setType(targetType)
 
     if (!options.keepUrl) {
-      const href = topic ? topicHref(topic) : searchHref(term, targetType)
-      window.history.replaceState({ yomipicSearch: true }, '', href)
+      window.history.replaceState({ yomipicSearch: true }, '', searchHref(term, targetType))
     }
 
-    setPageRoute(topic ? { kind: 'theme', type: targetType, topic } : { kind: 'home' })
+    if (landing?.kind === 'theme') {
+      setPageRoute({ kind: 'theme', type: targetType, topic: landing.item })
+    } else if (landing?.kind === 'guide') {
+      setPageRoute({ kind: 'guide', type: targetType, guide: landing.item })
+    } else {
+      setPageRoute({ kind: 'home' })
+    }
+
     setHasSearched(true)
     setLiveLoading(true)
     setLiveError('')
@@ -983,6 +1016,29 @@ export default function App() {
     } finally {
       setLiveLoading(false)
     }
+  }
+
+  const switchSearchType = (targetType) => {
+    const nextType = targetType === 'novel' ? 'novel' : 'manga'
+
+    if (pageRoute.kind === 'theme' && pageRoute.topic) {
+      const counterpart = discoveryTopics.find((item) => item.type === nextType && item.slug === pageRoute.topic.slug)
+      if (counterpart) {
+        searchBooks(null, counterpart.query, nextType)
+        return
+      }
+    }
+
+    if (pageRoute.kind === 'guide' && pageRoute.guide) {
+      const counterpart = intentGuides.find((item) => item.type === nextType && item.slug === pageRoute.guide.slug)
+      if (counterpart) {
+        searchBooks(null, counterpart.query, nextType)
+        return
+      }
+    }
+
+    if (query) searchBooks(null, query, nextType)
+    else setType(nextType)
   }
 
   const navigateRanking = (event, targetType) => {
@@ -1010,6 +1066,18 @@ export default function App() {
 
       if (route.kind === 'theme') {
         searchBooks(null, route.topic.query, route.type, { keepUrl: true, noScroll: true })
+        return
+      }
+
+      if (route.kind === 'guide') {
+        searchBooks(null, route.guide.query, route.type, { keepUrl: true, noScroll: true })
+        return
+      }
+
+      if (route.kind === 'series') {
+        setType(route.type)
+        setHasSearched(false)
+        setQuery('')
         return
       }
 
