@@ -21,6 +21,27 @@ import {
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
 
+const discoveryTopics = [
+  { label: '恋愛漫画', query: '恋愛', type: 'manga', emoji: '💕' },
+  { label: '青春漫画', query: '青春', type: 'manga', emoji: '🌸' },
+  { label: 'ファンタジー漫画', query: 'ファンタジー', type: 'manga', emoji: '✨' },
+  { label: 'ミステリー漫画', query: 'ミステリー', type: 'manga', emoji: '🔎' },
+  { label: '泣ける漫画', query: '感動', type: 'manga', emoji: '😭' },
+  { label: '恋愛小説', query: '恋愛', type: 'novel', emoji: '💗' },
+  { label: '青春小説', query: '青春', type: 'novel', emoji: '📚' },
+  { label: 'ミステリー小説', query: 'ミステリー', type: 'novel', emoji: '🕵️' },
+  { label: 'ファンタジー小説', query: 'ファンタジー', type: 'novel', emoji: '🌙' },
+  { label: '泣ける小説', query: '感動', type: 'novel', emoji: '🥹' },
+]
+
+function searchHref(query, type) {
+  const params = new URLSearchParams({
+    q: query,
+    type: type === 'novel' ? 'novel' : 'manga',
+  })
+  return `/?${params.toString()}`
+}
+
 function getDeviceId() {
   const key = 'yomipic-device-id'
   let id = localStorage.getItem(key)
@@ -354,7 +375,7 @@ export default function App() {
     setShareStatus('')
     const url = new URL(window.location.href)
     url.searchParams.delete('book')
-    url.searchParams.delete('type')
+    if (!url.searchParams.get('q')) url.searchParams.delete('type')
     window.history.replaceState({}, '', url)
   }
 
@@ -391,11 +412,21 @@ export default function App() {
   useEffect(() => {
     const homeTitle = 'ヨミピク｜漫画・小説の人気ランキング・感想・読みたい本棚'
     const homeDescription = 'ヨミピクは、漫画・小説を検索し、みんなの感想や評価、人気ランキングから次に読む一冊を探せる読書コミュニティ。気になる作品は「読みたい本棚」に保存できます。'
+    const searchLabel = query ? `${query}${type === 'manga' ? '漫画' : '小説'}` : ''
+    const searchDescription = searchLabel
+      ? `${searchLabel}を探すならヨミピク。実在する作品を検索し、みんなの感想・評価・「読みたい」数を見ながら次に読む一冊を見つけられます。`
+      : homeDescription
     const detailDescription = detailWork
       ? `${detailWork.title}${detailWork.author ? `（${detailWork.author}）` : ''}の感想・評価をヨミピクでチェック。みんなのレビューや「読みたい」数から、次に読む一冊を探せます。`
-      : homeDescription
-    const pageTitle = detailWork ? `${detailWork.title}の感想・評価｜ヨミピク` : homeTitle
-    const pageUrl = detailWork ? buildDetailUrl(detailWork) : 'https://yomipic.vercel.app/'
+      : (hasSearched && query ? searchDescription : homeDescription)
+    const pageTitle = detailWork
+      ? `${detailWork.title}の感想・評価｜ヨミピク`
+      : (hasSearched && query ? `${searchLabel}を探す｜おすすめ作品・感想｜ヨミピク` : homeTitle)
+    const pageUrl = detailWork
+      ? buildDetailUrl(detailWork)
+      : (hasSearched && query
+          ? new URL(searchHref(query, type), 'https://yomipic.vercel.app').toString()
+          : 'https://yomipic.vercel.app/')
     const pageImage = detailWork?.image || 'https://yomipic.vercel.app/favicon.svg'
 
     const setMeta = (selector, value) => {
@@ -451,7 +482,7 @@ export default function App() {
     return () => {
       document.title = homeTitle
     }
-  }, [detailWork, detailAverage, detailReviews.length])
+  }, [detailWork, detailAverage, detailReviews.length, hasSearched, query, type])
 
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
@@ -585,18 +616,29 @@ export default function App() {
     }
   }
 
-  const searchBooks = async (event, forcedQuery) => {
+  const searchBooks = async (event, forcedQuery, forcedType) => {
     event?.preventDefault()
     const term = (forcedQuery ?? query).trim()
     if (!term) return
 
+    const targetType = forcedType === 'novel' ? 'novel' : (forcedType === 'manga' ? 'manga' : type)
+
     if (forcedQuery !== undefined) setQuery(forcedQuery)
+    if (forcedType) setType(targetType)
+
+    const url = new URL(window.location.href)
+    url.hash = ''
+    url.searchParams.delete('book')
+    url.searchParams.set('q', term)
+    url.searchParams.set('type', targetType)
+    window.history.replaceState({ yomipicSearch: true }, '', url)
+
     setHasSearched(true)
     setLiveLoading(true)
     setLiveError('')
 
     try {
-      const response = await fetch(`/api/books?q=${encodeURIComponent(term)}&type=${type}`)
+      const response = await fetch(`/api/books?q=${encodeURIComponent(term)}&type=${targetType}`)
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || '検索に失敗しました')
       setLiveResults(data.items || [])
@@ -608,6 +650,17 @@ export default function App() {
       setLiveLoading(false)
     }
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('book')) return
+
+    const initialQuery = String(params.get('q') || '').trim()
+    if (!initialQuery) return
+
+    const initialType = params.get('type') === 'novel' ? 'novel' : 'manga'
+    searchBooks(null, initialQuery, initialType)
+  }, [])
 
   return (
     <div className="app-shell">
@@ -856,14 +909,23 @@ export default function App() {
         <section className="discover-section" id="discover">
           <div className="discover-copy">
             <span className="section-kicker">DISCOVER</span>
-            <h2>気分から、次の作品を探そう。</h2>
-            <p>ランキングだけでは見つからない一冊へ。気分に近い言葉で実作品を検索できます。</p>
+            <h2>人気テーマから漫画・小説を探そう。</h2>
+            <p>恋愛、青春、ミステリー、ファンタジーなど、読みたい気分に合わせて実在する漫画・小説を探せます。</p>
           </div>
-          <div className="mood-grid">
-            {moods.map((item) => {
-              const word = item.replace(/^\S+\s/, '')
-              return <button key={item} onClick={() => searchBooks(null, word)}>{item}<ChevronRight size={17} /></button>
-            })}
+          <div className="mood-grid topic-link-grid">
+            {discoveryTopics.map((topic) => (
+              <a
+                key={`${topic.type}-${topic.query}`}
+                href={searchHref(topic.query, topic.type)}
+                onClick={(event) => {
+                  event.preventDefault()
+                  searchBooks(null, topic.query, topic.type)
+                }}
+              >
+                <span><b>{topic.emoji}</b><small>{topic.type === 'manga' ? '漫画' : '小説'}</small>{topic.label}</span>
+                <ChevronRight size={17} />
+              </a>
+            ))}
           </div>
         </section>
 
