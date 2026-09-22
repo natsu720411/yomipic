@@ -114,12 +114,13 @@ function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, sav
             </a>
           ) : null}
           <button
-            className={`save-button ${saved ? 'saved' : ''}`}
+            className={`wishlist-button ${saved ? 'saved' : ''}`}
             onClick={() => onSave(work)}
             disabled={saved || saving}
             aria-label={saved ? '読みたい登録済み' : '読みたいに追加'}
           >
-            {saving ? <LoaderCircle size={18} className="spin" /> : saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+            {saving ? <LoaderCircle size={17} className="spin" /> : saved ? <BookmarkCheck size={17} /> : <Bookmark size={17} />}
+            <span>{saving ? '保存中' : saved ? '保存済み' : '読みたい'}</span>
           </button>
         </div>
       </div>
@@ -502,16 +503,17 @@ export default function App() {
                         <PenLine size={16} /> 感想
                       </button>
                       <button
-                        className={`save-button ${saved.has(work.dbId || dbWorkId(work)) ? 'saved' : ''}`}
+                        className={`wishlist-button compact ${saved.has(work.dbId || dbWorkId(work)) ? 'saved' : ''}`}
                         onClick={() => saveWork(work)}
                         disabled={saved.has(work.dbId || dbWorkId(work)) || savingId === (work.dbId || dbWorkId(work))}
                         aria-label={saved.has(work.dbId || dbWorkId(work)) ? '読みたい登録済み' : '読みたいに追加'}
                       >
                         {savingId === (work.dbId || dbWorkId(work))
-                          ? <LoaderCircle size={18} className="spin" />
+                          ? <LoaderCircle size={16} className="spin" />
                           : saved.has(work.dbId || dbWorkId(work))
-                            ? <BookmarkCheck size={18} />
-                            : <Bookmark size={18} />}
+                            ? <BookmarkCheck size={16} />
+                            : <Bookmark size={16} />}
+                        <span>{saved.has(work.dbId || dbWorkId(work)) ? '保存済み' : '読みたい'}</span>
                       </button>
                     </div>
                   )}
