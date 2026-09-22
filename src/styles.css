@@ -1052,3 +1052,81 @@ footer small { font-size: 10px; }
     padding: 0 16px;
   }
 }
+
+
+.seo-guide-section {
+  max-width: 1132px;
+  margin: 0 auto 12px;
+  padding: 26px 24px 10px;
+}
+.seo-guide-section h2 {
+  margin: 6px 0 16px;
+  font-size: clamp(24px, 4vw, 34px);
+  letter-spacing: -.04em;
+}
+.seo-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+}
+.seo-guide-grid article {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+}
+.seo-guide-grid h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.seo-guide-grid p,
+.theme-explainer p {
+  margin: 0;
+  color: #706879;
+  font-size: 11px;
+  line-height: 1.75;
+}
+.seo-guide-links {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.seo-guide-links strong {
+  margin-right: 3px;
+  color: #6f6779;
+  font-size: 10px;
+}
+.seo-guide-links a {
+  padding: 7px 9px;
+  border: 1px solid #ddd4e8;
+  border-radius: 999px;
+  background: #faf8fd;
+  color: #685f72;
+  font-size: 9px;
+  font-weight: 800;
+}
+.seo-guide-links a:hover {
+  color: var(--purple);
+  border-color: #c7b3e8;
+}
+.theme-explainer {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.theme-explainer h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+@media (max-width: 700px) {
+  .seo-guide-section {
+    padding: 18px 16px 6px;
+  }
+  .seo-guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
