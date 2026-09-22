@@ -50,6 +50,29 @@ function detailUrl(row) {
   return `https://yomipic.vercel.app/series/${type}/${encodeURIComponent(title)}`
 }
 
+const staticSeriesPages = [
+  ['manga', 'キングダム'],
+  ['manga', '葬送のフリーレン'],
+  ['manga', 'ONE PIECE'],
+  ['manga', 'メダリスト'],
+  ['manga', 'ブルーロック'],
+  ['manga', '呪術廻戦'],
+  ['manga', '薫る花は凛と咲く'],
+  ['manga', 'SPY×FAMILY'],
+  ['manga', '薬屋のひとりごと'],
+  ['manga', 'ダンダダン'],
+  ['novel', 'プロジェクト・ヘイル・メアリー'],
+  ['novel', '変な地図'],
+  ['novel', 'わたしの幸せな結婚'],
+  ['novel', '成瀬は都を駆け抜ける'],
+  ['novel', '爆弾'],
+  ['novel', '国宝'],
+  ['novel', 'カフネ'],
+  ['novel', '方舟'],
+  ['novel', '十角館の殺人'],
+  ['novel', '三体'],
+].map(([type, title]) => `/series/${type}/${encodeURIComponent(title)}`)
+
 const landingPages = [
   '/ranking/manga',
   '/ranking/novel',
@@ -119,7 +142,8 @@ export default async function handler(req, res) {
     const urls = [
       urlEntry('https://yomipic.vercel.app/', { lastmod: today, changefreq: 'daily', priority: '1.0' }),
       ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: today, priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
-      ...[...detailPages.entries()].map(([url, date]) =>
+      ...staticSeriesPages.map((path) => urlEntry(landingUrl(path), { lastmod: today, priority: '0.8' })),
+      ...[...detailPages.entries()].filter(([url]) => !staticSeriesPages.some((path) => landingUrl(path) === url)).map(([url, date]) =>
         urlEntry(url, { lastmod: date ? date.toISOString().slice(0, 10) : undefined, priority: '0.7' })
       ),
     ]
@@ -136,6 +160,7 @@ ${urls.join('\n')}
     const fallbackUrls = [
       'https://yomipic.vercel.app/',
       ...landingPages.map(landingUrl),
+      ...staticSeriesPages.map(landingUrl),
     ]
     const fallback = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
