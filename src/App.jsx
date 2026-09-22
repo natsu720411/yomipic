@@ -40,6 +40,29 @@ const discoveryTopics = [
   { slug: 'historical', label: '歴史小説', query: '歴史', type: 'novel', emoji: '🏯', description: '戦国・幕末など歴史の人物や時代を描いた定番小説を探せます。' },
 ]
 
+const popularSeries = [
+  { type: 'manga', title: 'キングダム', author: '原泰久' },
+  { type: 'manga', title: '葬送のフリーレン', author: '山田鐘人' },
+  { type: 'manga', title: 'ONE PIECE', author: '尾田栄一郎' },
+  { type: 'manga', title: 'メダリスト', author: 'つるまいかだ' },
+  { type: 'manga', title: 'ブルーロック', author: '金城宗幸' },
+  { type: 'manga', title: '呪術廻戦', author: '芥見下々' },
+  { type: 'manga', title: '薫る花は凛と咲く', author: '三香見サカ' },
+  { type: 'manga', title: 'SPY×FAMILY', author: '遠藤達哉' },
+  { type: 'manga', title: '薬屋のひとりごと', author: '日向夏' },
+  { type: 'manga', title: 'ダンダダン', author: '龍幸伸' },
+  { type: 'novel', title: 'プロジェクト・ヘイル・メアリー', author: 'アンディ・ウィアー' },
+  { type: 'novel', title: '変な地図', author: '雨穴' },
+  { type: 'novel', title: 'わたしの幸せな結婚', author: '顎木あくみ' },
+  { type: 'novel', title: '成瀬は都を駆け抜ける', author: '宮島未奈' },
+  { type: 'novel', title: '爆弾', author: '呉勝浩' },
+  { type: 'novel', title: '国宝', author: '吉田修一' },
+  { type: 'novel', title: 'カフネ', author: '阿部暁子' },
+  { type: 'novel', title: '方舟', author: '夕木春央' },
+  { type: 'novel', title: '十角館の殺人', author: '綾辻行人' },
+  { type: 'novel', title: '三体', author: '劉慈欣' },
+]
+
 const intentGuides = [
   { slug: 'completed', label: '完結漫画', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後までまとめて読める、完結済みの定番漫画を中心に選びました。' },
   { slug: 'binge', label: '一気読みしたい漫画', query: '一気読み漫画', type: 'manga', emoji: '📚', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を集めました。' },
@@ -1619,6 +1642,26 @@ export default function App() {
           </div>
         </section>
 
+        <section className="content-section popular-series-section" id="popular-series">
+          <div className="section-top">
+            <div>
+              <span className="section-kicker">POPULAR SERIES</span>
+              <h2>人気作品から探す。</h2>
+              <p>ランキングで注目されている漫画・小説を、作品タイトル単位のページからチェックできます。</p>
+            </div>
+          </div>
+          <div className="popular-series-grid">
+            {popularSeries.map((work) => (
+              <a key={`popular-${work.type}-${work.title}`} href={seriesHref(work)}>
+                <span>{work.type === 'manga' ? '漫画' : '小説'}</span>
+                <strong>{work.title}</strong>
+                <small>{work.author}</small>
+                <ChevronRight size={17} />
+              </a>
+            ))}
+          </div>
+        </section>
+
         <section className="content-section review-section" id="reviews">
           <div className="section-top">
             <div>
@@ -1806,6 +1849,28 @@ export default function App() {
                   <button onClick={() => openReview(detailWork)}>感想を書く</button>
                 </div>
               )}
+            </section>
+
+            <section className="detail-related-section">
+              <div className="detail-section-head">
+                <div>
+                  <span className="section-kicker">NEXT READ</span>
+                  <h2>ほかの人気{detailWork.type === 'manga' ? '漫画' : '小説'}も見る</h2>
+                </div>
+              </div>
+              <div className="detail-related-links">
+                {popularSeries
+                  .filter((work) => work.type === detailWork.type && seriesKey(work.type, work.title) !== detailSeriesKey)
+                  .slice(0, 6)
+                  .map((work) => (
+                    <a key={`detail-related-${work.type}-${work.title}`} href={seriesHref(work)}>
+                      <span>{work.type === 'manga' ? '漫画' : '小説'}</span>
+                      <strong>{work.title}</strong>
+                      <small>{work.author}</small>
+                      <ChevronRight size={16} />
+                    </a>
+                  ))}
+              </div>
             </section>
           </div>
         </div>
