@@ -18,14 +18,14 @@ import {
 } from 'lucide-react'
 
 const seedWorks = [
-  { id: 1, type: 'manga', title: '放課後、君と青い空', author: '水野ひかり', genre: '青春・恋愛', score: 4.7, reviews: 128, saves: 942, rank: 1, trend: 18, accent: 'linear-gradient(145deg,#7c3aed,#ec4899)', tagline: '夕焼けの教室から始まる、少し不器用な青春。' },
-  { id: 2, type: 'manga', title: '境界線のランナー', author: '高瀬ユウ', genre: 'スポーツ', score: 4.6, reviews: 94, saves: 721, rank: 2, trend: 31, accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)', tagline: '負けたくない理由を、走りながら見つけていく。' },
-  { id: 3, type: 'manga', title: '深夜0時の図書室', author: '佐倉まお', genre: 'ミステリー', score: 4.5, reviews: 83, saves: 665, rank: 3, trend: 47, accent: 'linear-gradient(145deg,#312e81,#6366f1)', tagline: '閉館後だけ開く、不思議な図書室の秘密。' },
-  { id: 4, type: 'manga', title: 'となりの魔法使い', author: '南しずく', genre: 'ファンタジー', score: 4.4, reviews: 61, saves: 508, rank: 4, trend: 12, accent: 'linear-gradient(145deg,#059669,#84cc16)', tagline: '普通の大学生活に、魔法がひとつ混ざったら。' },
-  { id: 5, type: 'novel', title: '君が忘れた夏の名前', author: '朝倉 澪', genre: '青春小説', score: 4.8, reviews: 156, saves: 1102, rank: 1, trend: 26, accent: 'linear-gradient(145deg,#0284c7,#f59e0b)', tagline: '思い出せない約束を追う、ひと夏の物語。' },
-  { id: 6, type: 'novel', title: '透明な夜に手紙を書く', author: '白石 遥', genre: '恋愛小説', score: 4.7, reviews: 131, saves: 980, rank: 2, trend: 39, accent: 'linear-gradient(145deg,#4338ca,#a855f7)', tagline: '届かないはずの手紙から始まる静かな恋。' },
-  { id: 7, type: 'novel', title: '珈琲店ノクターンの事件簿', author: '久遠 理人', genre: 'ミステリー', score: 4.5, reviews: 77, saves: 604, rank: 3, trend: 52, accent: 'linear-gradient(145deg,#78350f,#d97706)', tagline: '一杯の珈琲と、小さな謎を解く夜。' },
-  { id: 8, type: 'novel', title: '星降る駅で待っている', author: '伊月かなえ', genre: 'ファンタジー', score: 4.4, reviews: 69, saves: 577, rank: 4, trend: 21, accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)', tagline: '終電のあとにだけ現れる駅をめぐる物語。' },
+  { id: 1, type: 'manga', title: '放課後、君と青い空', author: '水野ひかり', genre: '青春・恋愛', score: 4.7, reviews: 128, saves: 942, rank: 1, trend: 18, accent: 'linear-gradient(145deg,#7c3aed,#ec4899)', tagline: '夕焼けの教室から始まる、少し不器用な青春。', demo: true },
+  { id: 2, type: 'manga', title: '境界線のランナー', author: '高瀬ユウ', genre: 'スポーツ', score: 4.6, reviews: 94, saves: 721, rank: 2, trend: 31, accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)', tagline: '負けたくない理由を、走りながら見つけていく。', demo: true },
+  { id: 3, type: 'manga', title: '深夜0時の図書室', author: '佐倉まお', genre: 'ミステリー', score: 4.5, reviews: 83, saves: 665, rank: 3, trend: 47, accent: 'linear-gradient(145deg,#312e81,#6366f1)', tagline: '閉館後だけ開く、不思議な図書室の秘密。', demo: true },
+  { id: 4, type: 'manga', title: 'となりの魔法使い', author: '南しずく', genre: 'ファンタジー', score: 4.4, reviews: 61, saves: 508, rank: 4, trend: 12, accent: 'linear-gradient(145deg,#059669,#84cc16)', tagline: '普通の大学生活に、魔法がひとつ混ざったら。', demo: true },
+  { id: 5, type: 'novel', title: '君が忘れた夏の名前', author: '朝倉 澪', genre: '青春小説', score: 4.8, reviews: 156, saves: 1102, rank: 1, trend: 26, accent: 'linear-gradient(145deg,#0284c7,#f59e0b)', tagline: '思い出せない約束を追う、ひと夏の物語。', demo: true },
+  { id: 6, type: 'novel', title: '透明な夜に手紙を書く', author: '白石 遥', genre: '恋愛小説', score: 4.7, reviews: 131, saves: 980, rank: 2, trend: 39, accent: 'linear-gradient(145deg,#4338ca,#a855f7)', tagline: '届かないはずの手紙から始まる静かな恋。', demo: true },
+  { id: 7, type: 'novel', title: '珈琲店ノクターンの事件簿', author: '久遠 理人', genre: 'ミステリー', score: 4.5, reviews: 77, saves: 604, rank: 3, trend: 52, accent: 'linear-gradient(145deg,#78350f,#d97706)', tagline: '一杯の珈琲と、小さな謎を解く夜。', demo: true },
+  { id: 8, type: 'novel', title: '星降る駅で待っている', author: '伊月かなえ', genre: 'ファンタジー', score: 4.4, reviews: 69, saves: 577, rank: 4, trend: 21, accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)', tagline: '終電のあとにだけ現れる駅をめぐる物語。', demo: true },
 ]
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
@@ -44,15 +44,20 @@ function dbWorkId(work) {
   return `${work.type || 'book'}::${work.id}`
 }
 
-function reviewWork(review) {
-  const [type = 'book', id = review.work_id] = String(review.work_id || '').split('::')
+function rowWork(row) {
+  const [type = 'book', id = row.work_id] = String(row.work_id || '').split('::')
   return {
     id,
+    dbId: row.work_id,
     type,
-    title: review.title,
-    author: review.author || '',
-    genre: review.genre || (type === 'manga' ? '漫画' : '小説'),
-    image: review.image_url || '',
+    title: row.title,
+    author: row.author || '',
+    genre: row.genre || (type === 'manga' ? '漫画' : '小説'),
+    image: row.image_url || '',
+    score: 0,
+    reviews: 0,
+    saves: 0,
+    tagline: 'ヨミピクで読者から反応が集まっている作品です。',
   }
 }
 
@@ -86,7 +91,7 @@ function Stars({ score }) {
   )
 }
 
-function ResultCard({ work, saved, onSave, onReview }) {
+function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, saving }) {
   return (
     <article className="work-card real-work-card">
       <Cover work={work} />
@@ -96,7 +101,8 @@ function ResultCard({ work, saved, onSave, onReview }) {
         <p className="author">{work.author || '著者情報なし'}</p>
         <div className="metrics result-metrics">
           <Stars score={work.score} />
-          {work.ratingsCount ? <span><MessageCircle size={14} /> {work.ratingsCount}</span> : null}
+          <span><MessageCircle size={14} /> {reviewCount}</span>
+          <span><Bookmark size={14} /> {saveCount}</span>
         </div>
         <div className="card-actions">
           <button className="ghost-button" onClick={() => onReview(work)}>
@@ -109,10 +115,11 @@ function ResultCard({ work, saved, onSave, onReview }) {
           ) : null}
           <button
             className={`save-button ${saved ? 'saved' : ''}`}
-            onClick={() => onSave(work.id)}
-            aria-label={saved ? '読みたいから外す' : '読みたいに追加'}
+            onClick={() => onSave(work)}
+            disabled={saved || saving}
+            aria-label={saved ? '読みたい登録済み' : '読みたいに追加'}
           >
-            {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+            {saving ? <LoaderCircle size={18} className="spin" /> : saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
           </button>
         </div>
       </div>
@@ -133,8 +140,10 @@ export default function App() {
   const [mood, setMood] = useState('')
   const [reviewText, setReviewText] = useState('')
   const [sharedReviews, setSharedReviews] = useState([])
+  const [sharedSaves, setSharedSaves] = useState([])
   const [communityError, setCommunityError] = useState('')
   const [postingReview, setPostingReview] = useState(false)
+  const [savingId, setSavingId] = useState('')
   const [deviceId] = useState(() => getDeviceId())
   const [liveResults, setLiveResults] = useState([])
   const [liveLoading, setLiveLoading] = useState(false)
@@ -148,32 +157,121 @@ export default function App() {
   useEffect(() => {
     let active = true
 
-    fetch('/api/community?kind=reviews')
+    fetch('/api/community')
       .then(async (response) => {
         const data = await response.json()
-        if (!response.ok) throw new Error(data.error || '感想を取得できませんでした')
-        if (active) setSharedReviews(data.reviews || [])
+        if (!response.ok) throw new Error(data.error || 'みんなの反応を取得できませんでした')
+        if (active) {
+          setSharedReviews(data.reviews || [])
+          setSharedSaves(data.saves || [])
+        }
       })
       .catch((error) => {
-        if (active) setCommunityError(error.message || '感想を取得できませんでした')
+        if (active) setCommunityError(error.message || 'みんなの反応を取得できませんでした')
       })
 
     return () => { active = false }
   }, [])
 
+  const saveCountMap = useMemo(() => {
+    const map = new Map()
+    for (const row of sharedSaves) {
+      map.set(row.work_id, (map.get(row.work_id) || 0) + 1)
+    }
+    return map
+  }, [sharedSaves])
+
+  const reviewCountMap = useMemo(() => {
+    const map = new Map()
+    for (const row of sharedReviews) {
+      map.set(row.work_id, (map.get(row.work_id) || 0) + 1)
+    }
+    return map
+  }, [sharedReviews])
+
+  const communityWorks = useMemo(() => {
+    const map = new Map()
+
+    const ensure = (row) => {
+      if (!map.has(row.work_id)) map.set(row.work_id, rowWork(row))
+      return map.get(row.work_id)
+    }
+
+    for (const row of sharedSaves) {
+      const work = ensure(row)
+      work.saves += 1
+      const age = Date.now() - new Date(row.created_at).getTime()
+      if (age < 7 * 86400000) work.recent = (work.recent || 0) + 1
+    }
+
+    for (const row of sharedReviews) {
+      const work = ensure(row)
+      work.reviews += 1
+      work.ratingTotal = (work.ratingTotal || 0) + Number(row.rating || 0)
+      const age = Date.now() - new Date(row.created_at).getTime()
+      if (age < 7 * 86400000) work.recent = (work.recent || 0) + 2
+    }
+
+    return [...map.values()].map((work) => ({
+      ...work,
+      score: work.reviews ? work.ratingTotal / work.reviews : 0,
+      popularity: work.saves * 2 + work.reviews * 3 + (work.recent || 0),
+    }))
+  }, [sharedSaves, sharedReviews])
+
   const works = useMemo(() => {
+    const real = communityWorks.filter((work) => work.type === type)
+
+    if (real.length) {
+      if (sort === 'rising') return [...real].sort((a, b) => (b.recent || 0) - (a.recent || 0) || b.popularity - a.popularity)
+      if (sort === 'rated') return [...real].sort((a, b) => b.score - a.score || b.reviews - a.reviews)
+      return [...real].sort((a, b) => b.popularity - a.popularity)
+    }
+
     let list = seedWorks.filter((work) => work.type === type)
     if (sort === 'rising') return [...list].sort((a, b) => b.trend - a.trend)
     if (sort === 'rated') return [...list].sort((a, b) => b.score - a.score)
     return [...list].sort((a, b) => a.rank - b.rank)
-  }, [type, sort])
+  }, [communityWorks, type, sort])
 
-  const toggleSaved = (id) => {
-    setSaved((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
+  const rankingIsDemo = !communityWorks.some((work) => work.type === type)
+
+  const saveWork = async (work) => {
+    if (!work || work.demo || savingId) return
+
+    const id = dbWorkId(work)
+    if (saved.has(id)) return
+
+    setSavingId(id)
+    setCommunityError('')
+
+    try {
+      const response = await fetch('/api/community', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'save',
+          deviceId,
+          work: {
+            workId: id,
+            title: work.title,
+            author: work.author || '',
+            imageUrl: work.image || '',
+            genre: work.genre || '',
+          },
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '「読みたい」を保存できませんでした')
+
+      setSaved((prev) => new Set([...prev, id]))
+      if (data.save) setSharedSaves((prev) => [data.save, ...prev])
+    } catch (error) {
+      setCommunityError(error.message || '「読みたい」を保存できませんでした')
+    } finally {
+      setSavingId('')
+    }
   }
 
   const openReview = (work) => {
@@ -332,9 +430,21 @@ export default function App() {
               </div>
             ) : liveResults.length ? (
               <div className="ranking-grid">
-                {liveResults.map((work) => (
-                  <ResultCard key={work.id} work={work} saved={saved.has(work.id)} onSave={toggleSaved} onReview={openReview} />
-                ))}
+                {liveResults.map((work) => {
+                  const id = dbWorkId(work)
+                  return (
+                    <ResultCard
+                      key={work.id}
+                      work={work}
+                      saved={saved.has(id)}
+                      saving={savingId === id}
+                      saveCount={saveCountMap.get(id) || 0}
+                      reviewCount={reviewCountMap.get(id) || 0}
+                      onSave={saveWork}
+                      onReview={openReview}
+                    />
+                  )
+                })}
               </div>
             ) : (
               <div className="search-status"><Search size={28} /><h3>作品が見つかりませんでした</h3><p>タイトルや作者名を変えて検索してみてください。</p></div>
@@ -346,8 +456,8 @@ export default function App() {
           <div className="section-top">
             <div>
               <span className="section-kicker">RANKING</span>
-              <h2>いま読まれている作品</h2>
-              <p>ここは独自ランキング機能のデザイン確認用サンプルです。次の段階で実データ化します。</p>
+              <h2>ヨミピク人気ランキング</h2>
+              <p>{rankingIsDemo ? 'まだこのジャンルの共有データがないためサンプルを表示しています。実作品に反応が集まると自動で切り替わります。' : 'みんなの「読みたい」と感想をもとにしたヨミピク独自ランキングです。'}</p>
             </div>
 
             <div className="type-switch" role="tablist" aria-label="作品タイプ">
@@ -383,21 +493,28 @@ export default function App() {
                   <p className="tagline">{work.tagline}</p>
                   <div className="metrics">
                     <Stars score={work.score} />
-                    <span><MessageCircle size={14} /> {work.reviews}</span>
-                    <span><Bookmark size={14} /> {work.saves + (saved.has(work.id) ? 1 : 0)}</span>
+                    <span><MessageCircle size={14} /> {work.reviews || 0}</span>
+                    <span><Bookmark size={14} /> {work.saves || 0}</span>
                   </div>
-                  <div className="card-actions">
-                    <button className="ghost-button" onClick={() => openReview(work)}>
-                      <PenLine size={16} /> 感想
-                    </button>
-                    <button
-                      className={`save-button ${saved.has(work.id) ? 'saved' : ''}`}
-                      onClick={() => toggleSaved(work.id)}
-                      aria-label={saved.has(work.id) ? '読みたいから外す' : '読みたいに追加'}
-                    >
-                      {saved.has(work.id) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-                    </button>
-                  </div>
+                  {!rankingIsDemo && (
+                    <div className="card-actions">
+                      <button className="ghost-button" onClick={() => openReview(work)}>
+                        <PenLine size={16} /> 感想
+                      </button>
+                      <button
+                        className={`save-button ${saved.has(work.dbId || dbWorkId(work)) ? 'saved' : ''}`}
+                        onClick={() => saveWork(work)}
+                        disabled={saved.has(work.dbId || dbWorkId(work)) || savingId === (work.dbId || dbWorkId(work))}
+                        aria-label={saved.has(work.dbId || dbWorkId(work)) ? '読みたい登録済み' : '読みたいに追加'}
+                      >
+                        {savingId === (work.dbId || dbWorkId(work))
+                          ? <LoaderCircle size={18} className="spin" />
+                          : saved.has(work.dbId || dbWorkId(work))
+                            ? <BookmarkCheck size={18} />
+                            : <Bookmark size={18} />}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </article>
             ))}
@@ -423,7 +540,7 @@ export default function App() {
             <div>
               <span className="section-kicker">REVIEWS</span>
               <h2>みんなのひとこと感想</h2>
-              <p>長文じゃなくてもOK。あなたが投稿した感想はこの端末に保存されます。</p>
+              <p>長文じゃなくてもOK。投稿された感想は、すべてのヨミピク利用者に共有されます。</p>
             </div>
           </div>
 
@@ -433,7 +550,7 @@ export default function App() {
 
           <div className="review-feed">
             {sharedReviews.length > 0 ? sharedReviews.slice(0, 8).map((review) => {
-              const work = reviewWork(review)
+              const work = rowWork(review)
               return (
                 <article className="review-card" key={review.id}>
                   <div className="review-user"><span>Y</span><div><strong>ヨミピク読者</strong><small>{new Date(review.created_at).toLocaleDateString('ja-JP')}</small></div></div>
@@ -454,9 +571,9 @@ export default function App() {
 
         <section className="cta-section">
           <div>
-            <span className="section-kicker light">YOUR BOOKSHELF</span>
-            <h2>あなたの「好き」を、本棚に。</h2>
-            <p>「読みたい」はこの端末に保存されるので、ページを閉じても残ります。</p>
+            <span className="section-kicker light">COMMUNITY</span>
+            <h2>あなたの「好き」がランキングを動かす。</h2>
+            <p>「読みたい」と感想が集まるほど、ヨミピク独自ランキングが育っていきます。</p>
           </div>
           <a href="#search-results">作品を探す <ChevronRight size={18} /></a>
         </section>
@@ -465,7 +582,7 @@ export default function App() {
       <footer>
         <a className="brand footer-brand" href="#top"><span className="brand-icon"><BookOpen size={19} /></span><span>ヨミピク</span></a>
         <p>漫画・小説のランキングと感想を楽しむ読書コミュニティ。</p>
-        <small>© 2026 YomiPic. ランキング部分の作品は現在UI確認用の架空データです。実作品検索にはGoogle Booksを利用します。</small>
+        <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。共有ランキングはヨミピク内の反応を集計しています。</small>
       </footer>
 
       {reviewOpen && selected && (
