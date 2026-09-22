@@ -685,33 +685,45 @@ export default function App() {
     const themeDescription = pageRoute.kind === 'theme' && pageRoute.topic
       ? `${pageRoute.topic.label}のおすすめ・定番作品を探せます。${pageRoute.topic.description} 感想や「読みたい」数もチェックできます。`
       : ''
+    const guideDescription = pageRoute.kind === 'guide' && pageRoute.guide
+      ? `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
+      : ''
+    const seriesName = detailWork?.seriesTitle || detailWork?.title || (pageRoute.kind === 'series' ? pageRoute.title : '')
+    const seriesDescription = seriesName
+      ? `${seriesName}の感想・評価をヨミピクでチェック。巻ごとの反応を作品タイトル単位にまとめ、みんなのレビューや「読みたい」数を確認できます。`
+      : ''
     const searchDescription = searchLabel
       ? `${searchLabel}をヨミピクで検索。実在する作品を探し、みんなの感想・評価・「読みたい」数を確認できます。`
       : homeDescription
-    const detailDescription = detailWork
-      ? `${detailWork.title}${detailWork.author ? `（${detailWork.author}）` : ''}の感想・評価をヨミピクでチェック。みんなのレビューや「読みたい」数から、次に読む一冊を探せます。`
-      : ''
 
     const isArbitrarySearch = !detailWork && hasSearched && query && pageRoute.kind === 'home'
     const pageTitle = detailWork
-      ? `${detailWork.title}の感想・評価｜ヨミピク`
+      ? `${seriesName}の感想・評価｜ヨミピク`
       : pageRoute.kind === 'ranking'
         ? `${rankingLabel}人気ランキング｜おすすめ作品・感想｜ヨミピク`
         : pageRoute.kind === 'theme' && pageRoute.topic
           ? `${pageRoute.topic.label}おすすめ・人気作品｜ヨミピク`
-          : hasSearched && query
-            ? `${searchLabel}を探す｜ヨミピク`
-            : homeTitle
+          : pageRoute.kind === 'guide' && pageRoute.guide
+            ? `${pageRoute.guide.label}｜おすすめ作品特集｜ヨミピク`
+            : pageRoute.kind === 'series' && pageRoute.title
+              ? `${pageRoute.title}の感想・評価｜ヨミピク`
+              : hasSearched && query
+                ? `${searchLabel}を探す｜ヨミピク`
+                : homeTitle
 
     const pageDescription = detailWork
-      ? detailDescription
+      ? seriesDescription
       : pageRoute.kind === 'ranking'
         ? rankingDescription
         : pageRoute.kind === 'theme'
           ? themeDescription
-          : hasSearched && query
-            ? searchDescription
-            : homeDescription
+          : pageRoute.kind === 'guide'
+            ? guideDescription
+            : pageRoute.kind === 'series'
+              ? seriesDescription
+              : hasSearched && query
+                ? searchDescription
+                : homeDescription
 
     const pageUrl = detailWork
       ? buildDetailUrl(detailWork)
@@ -719,9 +731,13 @@ export default function App() {
         ? `${origin}${rankingHref(pageRoute.type)}`
         : pageRoute.kind === 'theme' && pageRoute.topic
           ? `${origin}${topicHref(pageRoute.topic)}`
-          : hasSearched && query
-            ? `${origin}/?q=${encodeURIComponent(query)}&type=${type}`
-            : `${origin}/`
+          : pageRoute.kind === 'guide' && pageRoute.guide
+            ? `${origin}${guideHref(pageRoute.guide)}`
+            : pageRoute.kind === 'series' && pageRoute.title
+              ? `${origin}${seriesHref({ type: pageRoute.type, title: pageRoute.title })}`
+              : hasSearched && query
+                ? `${origin}/?q=${encodeURIComponent(query)}&type=${type}`
+                : `${origin}/`
 
     const pageImage = detailWork?.image || `${origin}/favicon.svg`
 
@@ -768,7 +784,7 @@ export default function App() {
       ? {
           '@context': 'https://schema.org',
           '@type': 'Book',
-          name: detailWork.title,
+          name: seriesName,
           url: pageUrl,
           image: detailWork.image || undefined,
           genre: detailWork.genre || undefined,
@@ -788,38 +804,46 @@ export default function App() {
 
     const listWorks = !detailWork && pageRoute.kind === 'ranking'
       ? works.slice(0, 10)
-      : !detailWork && pageRoute.kind === 'theme'
+      : !detailWork && (pageRoute.kind === 'theme' || pageRoute.kind === 'guide')
         ? liveResults.slice(0, 10)
         : []
+
+    const listName = pageRoute.kind === 'ranking'
+      ? `${rankingLabel}人気ランキング`
+      : pageRoute.kind === 'theme'
+        ? `${pageRoute.topic?.label || searchLabel}おすすめ作品`
+        : pageRoute.kind === 'guide'
+          ? `${pageRoute.guide?.label || searchLabel}おすすめ作品`
+          : ''
 
     const listData = listWorks.length
       ? {
           '@context': 'https://schema.org',
           '@type': 'ItemList',
-          name: pageRoute.kind === 'ranking'
-            ? `${rankingLabel}人気ランキング`
-            : `${pageRoute.topic?.label || searchLabel}おすすめ作品`,
+          name: listName,
           itemListElement: listWorks.map((work, index) => ({
             '@type': 'ListItem',
             position: index + 1,
-            name: work.title,
+            name: seriesTitle(work.title),
             url: new URL(detailHref(work), origin).toString(),
           })),
         }
       : null
     upsertJsonLd('yomipic-list-jsonld', listData)
 
-    const breadcrumbItems = pageRoute.kind === 'ranking'
+    let breadcrumbLabel = ''
+    if (pageRoute.kind === 'ranking') breadcrumbLabel = `${rankingLabel}人気ランキング`
+    if (pageRoute.kind === 'theme') breadcrumbLabel = pageRoute.topic?.label || ''
+    if (pageRoute.kind === 'guide') breadcrumbLabel = pageRoute.guide?.label || ''
+    if (pageRoute.kind === 'series') breadcrumbLabel = pageRoute.title || ''
+    if (detailWork) breadcrumbLabel = seriesName
+
+    const breadcrumbItems = breadcrumbLabel
       ? [
           { '@type': 'ListItem', position: 1, name: 'ヨミピク', item: `${origin}/` },
-          { '@type': 'ListItem', position: 2, name: `${rankingLabel}人気ランキング`, item: pageUrl },
+          { '@type': 'ListItem', position: 2, name: breadcrumbLabel, item: pageUrl },
         ]
-      : pageRoute.kind === 'theme' && pageRoute.topic
-        ? [
-            { '@type': 'ListItem', position: 1, name: 'ヨミピク', item: `${origin}/` },
-            { '@type': 'ListItem', position: 2, name: pageRoute.topic.label, item: pageUrl },
-          ]
-        : []
+      : []
 
     upsertJsonLd(
       'yomipic-breadcrumb-jsonld',
