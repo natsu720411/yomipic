@@ -94,13 +94,20 @@ function dbWorkId(work) {
 
 function seriesTitle(value) {
   return String(value || '')
+    .normalize('NFKC')
     .trim()
-    .replace(/\s*(?:第?\s*[0-9０-９]+\s*巻|vol\.?\s*[0-9０-９]+|volume\s*[0-9０-９]+|[（(]\s*[0-9０-９]+\s*[）)]|\s[0-9０-９]{1,3})\s*$/iu, '')
+    .replace(/\s*(?:モノクロ版|カラー版|デジタル版|電子版|分冊版|新装版|完全版)\s*$/iu, '')
+    .replace(/\s*(?:第?\s*[0-9]+\s*巻|vol\.?\s*[0-9]+|volume\s*[0-9]+|[（(]\s*[0-9]+\s*[）)]|\s[0-9]{1,3})\s*$/iu, '')
+    .replace(/\s*(?:モノクロ版|カラー版|デジタル版|電子版|分冊版|新装版|完全版)\s*$/iu, '')
     .trim()
 }
 
 function seriesKey(type, title) {
-  return `${type || 'book'}::${seriesTitle(title).normalize('NFKC').toLowerCase()}`
+  const normalized = seriesTitle(title)
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s　・･:：!！?？,，.。'"“”‘’「」『』【】()（）\[\]<>＜＞\-―ー]/g, '')
+  return `${type || 'book'}::${normalized}`
 }
 
 function sourceBookId(work) {
