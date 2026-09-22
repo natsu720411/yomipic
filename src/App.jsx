@@ -276,6 +276,28 @@ export default function App() {
 
   const rankingIsEmpty = works.length === 0
 
+  const bookshelfWorks = useMemo(() => {
+    const byId = new Map()
+    for (const row of sharedSaves) {
+      if (!byId.has(row.work_id)) byId.set(row.work_id, rowWork(row))
+    }
+
+    return [...saved]
+      .map((id) => byId.get(id))
+      .filter(Boolean)
+      .map((work) => ({
+        ...work,
+        score: (() => {
+          const reviews = sharedReviews.filter((review) => review.work_id === work.dbId)
+          return reviews.length
+            ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length
+            : 0
+        })(),
+        reviews: reviewCountMap.get(work.dbId) || 0,
+        saves: saveCountMap.get(work.dbId) || 0,
+      }))
+  }, [saved, sharedSaves, sharedReviews, reviewCountMap, saveCountMap])
+
   const detailDbId = detailWork ? (detailWork.dbId || dbWorkId(detailWork)) : ''
   const detailReviews = useMemo(
     () => detailDbId ? sharedReviews.filter((review) => review.work_id === detailDbId) : [],
@@ -483,6 +505,7 @@ export default function App() {
 
         <nav className="desktop-nav" aria-label="メインメニュー">
           <a href="#ranking">ランキング</a>
+          <a href="#bookshelf">読みたい本棚</a>
           <a href="#reviews">みんなの感想</a>
           <a href="#discover">作品を探す</a>
         </nav>
@@ -653,6 +676,49 @@ export default function App() {
                   </div>
                 </article>
               ))}
+            </div>
+          )}
+        </section>
+
+        <section className="content-section bookshelf-section" id="bookshelf">
+          <div className="section-top">
+            <div>
+              <span className="section-kicker">MY BOOKSHELF</span>
+              <h2>読みたい本棚</h2>
+              <p>「読みたい」に保存した作品を、この端末でいつでも見返せます。</p>
+            </div>
+            <div className="bookshelf-count"><BookmarkCheck size={17} /> {bookshelfWorks.length}冊</div>
+          </div>
+
+          {bookshelfWorks.length ? (
+            <div className="bookshelf-grid">
+              {bookshelfWorks.map((work) => (
+                <article className="bookshelf-card" key={work.dbId}>
+                  <button className="bookshelf-cover" onClick={() => openDetail(work)} aria-label={`${work.title}の詳細を見る`}>
+                    <Cover work={work} />
+                  </button>
+                  <div className="bookshelf-body">
+                    <span>{work.genre || (work.type === 'manga' ? '漫画' : '小説')}</span>
+                    <button onClick={() => openDetail(work)}>{work.title}</button>
+                    <p>{work.author || '著者情報なし'}</p>
+                    <div className="bookshelf-metrics">
+                      <Stars score={work.score} />
+                      <span><MessageCircle size={13} /> {work.reviews}</span>
+                      <span><Bookmark size={13} /> {work.saves}</span>
+                    </div>
+                    <button className="bookshelf-detail-button" onClick={() => openDetail(work)}>
+                      詳細を見る <ChevronRight size={15} />
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="bookshelf-empty">
+              <Bookmark size={30} />
+              <h3>まだ「読みたい」がありません</h3>
+              <p>気になる漫画や小説を検索して、「読みたい」を押すとここに並びます。</p>
+              <a href="#top">作品を探す <ChevronRight size={16} /></a>
             </div>
           )}
         </section>
