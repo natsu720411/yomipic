@@ -61,6 +61,17 @@ function dbWorkId(work) {
   return `${work.type || 'book'}::${work.id}`
 }
 
+function seriesTitle(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\s*(?:第?\s*[0-9０-９]+\s*巻|vol\.?\s*[0-9０-９]+|volume\s*[0-9０-９]+|[（(]\s*[0-9０-９]+\s*[）)]|\s[0-9０-９]{1,3})\s*$/iu, '')
+    .trim()
+}
+
+function seriesKey(type, title) {
+  return `${type || 'book'}::${seriesTitle(title).normalize('NFKC').toLowerCase()}`
+}
+
 function sourceBookId(work) {
   if (!work) return ''
   if (work.sourceId) return String(work.sourceId)
@@ -303,8 +314,26 @@ export default function App() {
     const map = new Map()
 
     const ensure = (row) => {
-      if (!map.has(row.work_id)) map.set(row.work_id, rowWork(row))
-      return map.get(row.work_id)
+      const base = rowWork(row)
+      const key = seriesKey(base.type, row.title)
+
+      if (!map.has(key)) {
+        map.set(key, {
+          ...base,
+          title: seriesTitle(row.title),
+          seriesKey: key,
+          sourceWorkIds: new Set(),
+        })
+      }
+
+      const work = map.get(key)
+      work.sourceWorkIds.add(row.work_id)
+
+      if (!work.image && row.image_url) work.image = row.image_url
+      if (!work.author && row.author) work.author = row.author
+      if (!work.genre && row.genre) work.genre = row.genre
+
+      return work
     }
 
     for (const row of sharedSaves) {
@@ -324,6 +353,7 @@ export default function App() {
 
     return [...map.values()].map((work) => ({
       ...work,
+      sourceWorkIds: [...work.sourceWorkIds],
       score: work.reviews ? work.ratingTotal / work.reviews : 0,
       popularity: work.saves * 2 + work.reviews * 3 + (work.recent || 0),
     }))
@@ -331,15 +361,16 @@ export default function App() {
 
   const works = useMemo(() => {
     const community = communityWorks.filter((work) => work.type === type)
-    const communityById = new Map(
-      community.map((work) => [work.dbId || dbWorkId(work), work])
+    const communityBySeries = new Map(
+      community.map((work) => [work.seriesKey || seriesKey(work.type, work.title), work])
     )
     const used = new Set()
 
     const seeded = (starterByType[type] || []).map((starter) => {
       const id = dbWorkId(starter)
-      const reactions = communityById.get(id)
-      used.add(id)
+      const key = seriesKey(starter.type, starter.title)
+      const reactions = communityBySeries.get(key)
+      used.add(key)
 
       const saves = reactions?.saves || 0
       const reviews = reactions?.reviews || 0
@@ -349,21 +380,23 @@ export default function App() {
       return {
         ...starter,
         dbId: id,
+        seriesKey: key,
         saves,
         reviews,
         recent,
         score: reviews ? reactions.score : 0,
         popularity: baseline + saves * 7 + reviews * 10 + recent * 4,
         tagline: reactions
-          ? '外部人気を参考にした初期順位へ、ヨミピク内の反応を反映しています。'
+          ? '作品タイトル単位で、各巻に付いたヨミピク内の反応をまとめて反映しています。'
           : '公開ランキングや販売動向を参考にした初期ランキング作品です。',
       }
     })
 
     const communityOnly = community
-      .filter((work) => !used.has(work.dbId || dbWorkId(work)))
+      .filter((work) => !used.has(work.seriesKey || seriesKey(work.type, work.title)))
       .map((work) => ({
         ...work,
+        title: seriesTitle(work.title),
         popularity: (work.saves || 0) * 7 + (work.reviews || 0) * 10 + (work.recent || 0) * 4,
       }))
 
@@ -889,7 +922,7 @@ export default function App() {
             <div>
               <span className="section-kicker">RANKING</span>
               <h2>ヨミピク人気ランキング</h2>
-              <p>{rankingIsEmpty ? 'ランキングを準備しています。' : '公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映して順位が変わります。'}</p>
+              <p>{rankingIsEmpty ? 'ランキングを準備しています。' : '巻ごとではなく作品タイトル単位で集計し、公開ランキング・販売動向を参考にした初期順位へヨミピク内の「読みたい」と感想を反映します。'}</p>
               <div className="ranking-sources">
                 参考：
                 <a href="https://booklive.jp/feature/index/id/firsthalf" target="_blank" rel="noreferrer">BookLive 2026年上半期</a>
