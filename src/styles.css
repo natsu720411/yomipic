@@ -276,3 +276,14 @@ footer small { font-size: 10px; }
   opacity: .65;
   cursor: wait;
 }
+
+.modal-error {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #f1c7c7;
+  border-radius: 10px;
+  background: #fff6f6;
+  color: #9f2f2f;
+  font-size: 12px;
+  line-height: 1.6;
+}
