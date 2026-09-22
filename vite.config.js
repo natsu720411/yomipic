@@ -3,6 +3,33 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 
+const seriesPages = [
+  ['manga', 'キングダム', '原泰久'],
+  ['manga', '葬送のフリーレン', '山田鐘人'],
+  ['manga', 'ONE PIECE', '尾田栄一郎'],
+  ['manga', 'メダリスト', 'つるまいかだ'],
+  ['manga', 'ブルーロック', '金城宗幸'],
+  ['manga', '呪術廻戦', '芥見下々'],
+  ['manga', '薫る花は凛と咲く', '三香見サカ'],
+  ['manga', 'SPY×FAMILY', '遠藤達哉'],
+  ['manga', '薬屋のひとりごと', '日向夏'],
+  ['manga', 'ダンダダン', '龍幸伸'],
+  ['novel', 'プロジェクト・ヘイル・メアリー', 'アンディ・ウィアー'],
+  ['novel', '変な地図', '雨穴'],
+  ['novel', 'わたしの幸せな結婚', '顎木あくみ'],
+  ['novel', '成瀬は都を駆け抜ける', '宮島未奈'],
+  ['novel', '爆弾', '呉勝浩'],
+  ['novel', '国宝', '吉田修一'],
+  ['novel', 'カフネ', '阿部暁子'],
+  ['novel', '方舟', '夕木春央'],
+  ['novel', '十角館の殺人', '綾辻行人'],
+  ['novel', '三体', '劉慈欣'],
+].map(([type, title, author]) => ({
+  path: `series/${type}/${title}`,
+  title: `${title}の感想・評価｜ヨミピク`,
+  description: `${title}${author ? `（${author}）` : ''}の感想・評価をチェック。巻ごとの反応を作品タイトル単位にまとめ、レビューや「読みたい」数から次に読む作品を探せます。`,
+}))
+
 const seoPages = [
   {
     path: 'ranking/manga',
@@ -38,6 +65,7 @@ const seoPages = [
   { path: 'guide/novel/binge', title: '一気読みしたい小説おすすめ｜ヨミピク', description: '展開が気になり、ページをめくる手が止まりにくい小説を中心に紹介します。' },
   { path: 'guide/novel/college', title: '大学生におすすめの小説｜ヨミピク', description: '青春、将来、人間関係、自分らしさなど、大学生が共感しやすい小説を紹介します。' },
   { path: 'guide/novel/short', title: '短く読める小説おすすめ｜短編・読みやすい作品｜ヨミピク', description: '短編集や比較的コンパクトな作品を中心に、すきま時間でも楽しみやすい小説を紹介します。' },
+  ...seriesPages,
 ]
 
 function escapeHtml(value) {
