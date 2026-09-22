@@ -661,3 +661,36 @@ footer small { font-size: 10px; }
     gap: 4px;
   }
 }
+
+
+.detail-share-button {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid #d9ccef;
+  border-radius: 11px;
+  background: #f8f4ff;
+  color: var(--purple);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 900;
+}
+.detail-share-button:hover {
+  background: #efe6ff;
+}
+.share-status {
+  align-self: center;
+  color: #71697c;
+  font-size: 11px;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .detail-share-button {
+    flex: 1 1 auto;
+  }
+  .share-status {
+    flex-basis: 100%;
+  }
+}
