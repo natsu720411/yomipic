@@ -270,6 +270,7 @@ export default function App() {
   })
   const [selected, setSelected] = useState(null)
   const [detailWork, setDetailWork] = useState(null)
+  const [detailReturnUrl, setDetailReturnUrl] = useState('')
   const [shareStatus, setShareStatus] = useState('')
   const [reviewOpen, setReviewOpen] = useState(false)
   const [rating, setRating] = useState(5)
@@ -341,22 +342,50 @@ export default function App() {
     let active = true
 
     const loadDetailFromUrl = async () => {
+      const route = routeInfo()
       const params = new URLSearchParams(window.location.search)
-      const bookId = params.get('book')
-      const urlType = params.get('type') === 'novel' ? 'novel' : 'manga'
+      const legacyBookId = params.get('book')
+      const legacyType = params.get('type') === 'novel' ? 'novel' : 'manga'
+      const urlType = route.kind === 'series' ? route.type : legacyType
+      const seriesName = route.kind === 'series' ? seriesTitle(route.title) : ''
 
-      if (!bookId) {
+      if (!legacyBookId && !seriesName) {
         if (active) setDetailWork(null)
         return
       }
 
       try {
-        const response = await fetch(`/api/books?id=${encodeURIComponent(bookId)}&type=${urlType}`)
+        if (seriesName) {
+          const response = await fetch(`/api/books?q=${encodeURIComponent(seriesName)}&type=${urlType}`)
+          const data = await response.json()
+          if (!response.ok) throw new Error(data.error || '作品情報を取得できませんでした')
+
+          const expectedKey = seriesKey(urlType, seriesName)
+          const item = (data.items || []).find((candidate) => seriesKey(urlType, candidate.title) === expectedKey)
+            || (data.items || [])[0]
+
+          if (active && item) {
+            setType(urlType)
+            setDetailWork({
+              ...item,
+              title: seriesName,
+              seriesTitle: seriesName,
+            })
+          }
+          return
+        }
+
+        const response = await fetch(`/api/books?id=${encodeURIComponent(legacyBookId)}&type=${urlType}`)
         const data = await response.json()
         if (!response.ok) throw new Error(data.error || '作品情報を取得できませんでした')
         if (active && data.item) {
+          const normalizedTitle = seriesTitle(data.item.title)
           setType(urlType)
-          setDetailWork(data.item)
+          setDetailWork({
+            ...data.item,
+            title: normalizedTitle,
+            seriesTitle: normalizedTitle,
+          })
         }
       } catch (error) {
         if (active) setCommunityError(error.message || '共有された作品情報を開けませんでした')
@@ -522,14 +551,28 @@ export default function App() {
   }, [saved, sharedSaves, sharedReviews, reviewCountMap, saveCountMap])
 
   const detailDbId = detailWork ? (detailWork.dbId || dbWorkId(detailWork)) : ''
+  const detailSeriesKey = detailWork ? seriesKey(detailWork.type, detailWork.seriesTitle || detailWork.title) : ''
   const detailReviews = useMemo(
-    () => detailDbId ? sharedReviews.filter((review) => review.work_id === detailDbId) : [],
-    [detailDbId, sharedReviews],
+    () => detailSeriesKey
+      ? sharedReviews.filter((review) => {
+          const [rowType = 'book'] = String(review.work_id || '').split('::')
+          return seriesKey(rowType, review.title) === detailSeriesKey
+        })
+      : [],
+    [detailSeriesKey, sharedReviews],
   )
   const detailAverage = detailReviews.length
     ? detailReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / detailReviews.length
     : 0
-  const detailSaveCount = detailDbId ? (saveCountMap.get(detailDbId) || 0) : 0
+  const detailSaveCount = useMemo(
+    () => detailSeriesKey
+      ? sharedSaves.filter((row) => {
+          const [rowType = 'book'] = String(row.work_id || '').split('::')
+          return seriesKey(rowType, row.title) === detailSeriesKey
+        }).length
+      : 0,
+    [detailSeriesKey, sharedSaves],
+  )
 
   useEffect(() => {
     if (!detailWork && !reviewOpen) return undefined
@@ -549,26 +592,30 @@ export default function App() {
   }, [detailWork, reviewOpen])
 
   const openDetail = (work) => {
-    setDetailWork(work)
+    const canonicalTitle = seriesTitle(work?.seriesTitle || work?.title)
+    if (!canonicalTitle) return
+
+    setDetailReturnUrl(`${window.location.pathname}${window.location.search}${window.location.hash}`)
+    setDetailWork({
+      ...work,
+      title: canonicalTitle,
+      seriesTitle: canonicalTitle,
+    })
     setShareStatus('')
-
-    const sourceId = sourceBookId(work)
-    if (!sourceId) return
-
-    const url = new URL(window.location.href)
-    url.hash = ''
-    url.searchParams.set('book', sourceId)
-    url.searchParams.set('type', work?.type === 'novel' ? 'novel' : 'manga')
-    window.history.pushState({ yomipicDetail: true }, '', url)
+    window.history.pushState({ yomipicDetail: true }, '', seriesHref({ ...work, title: canonicalTitle }))
   }
 
   const closeDetail = () => {
     setDetailWork(null)
     setShareStatus('')
-    const url = new URL(window.location.href)
-    url.searchParams.delete('book')
-    if (!url.searchParams.get('q')) url.searchParams.delete('type')
-    window.history.replaceState({}, '', url)
+
+    const target = detailReturnUrl && !detailReturnUrl.startsWith('/series/')
+      ? detailReturnUrl
+      : '/'
+
+    window.history.replaceState({}, '', target)
+    setDetailReturnUrl('')
+    setPageRoute(routeInfo())
   }
 
   const shareDetail = async () => {
@@ -787,7 +834,7 @@ export default function App() {
           deviceId,
           work: {
             workId: id,
-            title: work.title,
+            title: seriesTitle(work.title),
             author: work.author || '',
             imageUrl: work.image || '',
             genre: work.genre || '',
@@ -877,7 +924,7 @@ export default function App() {
           deviceId,
           work: {
             workId: dbWorkId(selected),
-            title: selected.title,
+            title: seriesTitle(selected.title),
             author: selected.author || '',
             imageUrl: selected.image || '',
             genre: selected.genre || '',
