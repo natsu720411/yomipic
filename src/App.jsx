@@ -15,6 +15,7 @@ import {
   Trophy,
   ExternalLink,
   LoaderCircle,
+  Share2,
 } from 'lucide-react'
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
@@ -31,6 +32,24 @@ function getDeviceId() {
 
 function dbWorkId(work) {
   return `${work.type || 'book'}::${work.id}`
+}
+
+function sourceBookId(work) {
+  if (!work) return ''
+  if (work.sourceId) return String(work.sourceId)
+  const id = String(work.id || '')
+  return id.startsWith('google-') ? id.slice(7) : ''
+}
+
+function buildDetailUrl(work) {
+  const sourceId = sourceBookId(work)
+  const url = new URL(window.location.href)
+  url.hash = ''
+  if (sourceId) {
+    url.searchParams.set('book', sourceId)
+    url.searchParams.set('type', work?.type === 'novel' ? 'novel' : 'manga')
+  }
+  return url.toString()
 }
 
 function rowWork(row) {
@@ -128,6 +147,7 @@ export default function App() {
   })
   const [selected, setSelected] = useState(null)
   const [detailWork, setDetailWork] = useState(null)
+  const [shareStatus, setShareStatus] = useState('')
   const [reviewOpen, setReviewOpen] = useState(false)
   const [rating, setRating] = useState(5)
   const [mood, setMood] = useState('')
@@ -164,6 +184,41 @@ export default function App() {
       })
 
     return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+
+    const loadDetailFromUrl = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const bookId = params.get('book')
+      const urlType = params.get('type') === 'novel' ? 'novel' : 'manga'
+
+      if (!bookId) {
+        if (active) setDetailWork(null)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/books?id=${encodeURIComponent(bookId)}&type=${urlType}`)
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || '作品情報を取得できませんでした')
+        if (active && data.item) {
+          setType(urlType)
+          setDetailWork(data.item)
+        }
+      } catch (error) {
+        if (active) setCommunityError(error.message || '共有された作品情報を開けませんでした')
+      }
+    }
+
+    loadDetailFromUrl()
+    window.addEventListener('popstate', loadDetailFromUrl)
+
+    return () => {
+      active = false
+      window.removeEventListener('popstate', loadDetailFromUrl)
+    }
   }, [])
 
   const saveCountMap = useMemo(() => {
@@ -238,7 +293,7 @@ export default function App() {
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         if (reviewOpen) setReviewOpen(false)
-        else setDetailWork(null)
+        else closeDetail()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -247,6 +302,65 @@ export default function App() {
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [detailWork, reviewOpen])
+
+  const openDetail = (work) => {
+    setDetailWork(work)
+    setShareStatus('')
+
+    const sourceId = sourceBookId(work)
+    if (!sourceId) return
+
+    const url = new URL(window.location.href)
+    url.hash = ''
+    url.searchParams.set('book', sourceId)
+    url.searchParams.set('type', work?.type === 'novel' ? 'novel' : 'manga')
+    window.history.pushState({ yomipicDetail: true }, '', url)
+  }
+
+  const closeDetail = () => {
+    setDetailWork(null)
+    setShareStatus('')
+    const url = new URL(window.location.href)
+    url.searchParams.delete('book')
+    url.searchParams.delete('type')
+    window.history.replaceState({}, '', url)
+  }
+
+  const shareDetail = async () => {
+    if (!detailWork) return
+
+    const url = buildDetailUrl(detailWork)
+    const shareData = {
+      title: `${detailWork.title} | ヨミピク`,
+      text: `「${detailWork.title}」の感想・評価をヨミピクで見る`,
+      url,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+        setShareStatus('共有しました')
+      } else {
+        await navigator.clipboard.writeText(url)
+        setShareStatus('リンクをコピーしました')
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(url)
+          setShareStatus('リンクをコピーしました')
+        } catch {
+          setShareStatus('共有リンクをコピーできませんでした')
+        }
+      }
+    }
+  }
+
+  useEffect(() => {
+    const originalTitle = 'ヨミピク | 次に読む一冊が、きっと見つかる。'
+    document.title = detailWork ? `${detailWork.title} | ヨミピク` : originalTitle
+    return () => { document.title = originalTitle }
+  }, [detailWork])
 
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
@@ -454,7 +568,7 @@ export default function App() {
                       reviewCount={reviewCountMap.get(id) || 0}
                       onSave={saveWork}
                       onReview={openReview}
-                      onOpen={setDetailWork}
+                      onOpen={openDetail}
                     />
                   )
                 })}
@@ -505,12 +619,12 @@ export default function App() {
                     {index < 3 ? <Trophy size={13} /> : null}
                     {index + 1}
                   </div>
-                  <button className="work-cover-button" onClick={() => setDetailWork(work)} aria-label={`${work.title}の詳細を見る`}>
+                  <button className="work-cover-button" onClick={() => openDetail(work)} aria-label={`${work.title}の詳細を見る`}>
                     <Cover work={work} />
                   </button>
                   <div className="work-body">
                     <div className="work-meta">{work.genre}</div>
-                    <button className="work-title-button" onClick={() => setDetailWork(work)}>{work.title}</button>
+                    <button className="work-title-button" onClick={() => openDetail(work)}>{work.title}</button>
                     <p className="author">{work.author}</p>
                     <p className="tagline">{work.tagline}</p>
                     <div className="metrics">
@@ -610,15 +724,15 @@ export default function App() {
       {detailWork && (
         <div className="detail-page" role="dialog" aria-modal="true" aria-label={`${detailWork.title}の作品詳細`}>
           <div className="detail-header">
-            <button className="detail-back" onClick={() => setDetailWork(null)}>
+            <button className="detail-back" onClick={closeDetail}>
               <ChevronRight size={18} />
               戻る
             </button>
-            <a className="brand detail-brand" href="#top" onClick={() => setDetailWork(null)}>
+            <a className="brand detail-brand" href="#top" onClick={closeDetail}>
               <span className="brand-icon"><BookOpen size={18} /></span>
               <span>ヨミピク</span>
             </a>
-            <button className="detail-close" onClick={() => setDetailWork(null)} aria-label="詳細を閉じる">
+            <button className="detail-close" onClick={closeDetail} aria-label="詳細を閉じる">
               <X size={20} />
             </button>
           </div>
@@ -665,11 +779,15 @@ export default function App() {
                         : <Bookmark size={17} />}
                     <span>{saved.has(detailDbId) ? '読みたい登録済み' : '読みたい'}</span>
                   </button>
+                  <button className="detail-share-button" onClick={shareDetail}>
+                    <Share2 size={17} /> 共有
+                  </button>
                   {detailWork.infoLink && (
                     <a className="detail-info-link" href={detailWork.infoLink} target="_blank" rel="noreferrer">
                       <ExternalLink size={17} /> 書籍情報
                     </a>
                   )}
+                  {shareStatus && <span className="share-status">{shareStatus}</span>}
                 </div>
               </div>
             </section>
