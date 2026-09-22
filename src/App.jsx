@@ -1164,6 +1164,11 @@ export default function App() {
                 <h1>{pageRoute.topic.label}<br /><span>おすすめ・人気作品</span></h1>
                 <p>{pageRoute.topic.description} 感想や「読みたい」数も見ながら選べます。</p>
               </>
+            ) : pageRoute.kind === 'guide' && pageRoute.guide ? (
+              <>
+                <h1>{pageRoute.guide.label}<br /><span>今の気分に合う一冊を。</span></h1>
+                <p>{pageRoute.guide.description} 感想や「読みたい」数も見ながら比較できます。</p>
+              </>
             ) : (
               <>
                 <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
@@ -1213,7 +1218,13 @@ export default function App() {
             <span>
               {pageRoute.kind === 'ranking'
                 ? `${pageRoute.type === 'novel' ? '小説' : '漫画'}人気ランキング`
-                : pageRoute.topic?.label}
+                : pageRoute.kind === 'theme'
+                  ? pageRoute.topic?.label
+                  : pageRoute.kind === 'guide'
+                    ? pageRoute.guide?.label
+                    : pageRoute.kind === 'series'
+                      ? pageRoute.title
+                      : ''}
             </span>
           </nav>
         )}
@@ -1227,20 +1238,22 @@ export default function App() {
                 <p className="search-intro">
                   {pageRoute.kind === 'theme' && pageRoute.topic
                     ? pageRoute.topic.description
-                    : `${searchPageLabel(query, type)}の実在作品を検索しています。気になる作品は感想・評価や「読みたい」数を確認して、本棚に保存できます。`}
+                    : pageRoute.kind === 'guide' && pageRoute.guide
+                      ? pageRoute.guide.description
+                      : `${searchPageLabel(query, type)}の実在作品を検索しています。気になる作品は感想・評価や「読みたい」数を確認して、本棚に保存できます。`}
                 </p>
                 <small className="search-source-note">書籍情報はGoogle Booksのデータを利用しています。</small>
               </div>
               <div className="type-switch" role="tablist" aria-label="検索する作品タイプ">
                 <button
                   className={type === 'manga' ? 'active' : ''}
-                  onClick={() => query ? searchBooks(null, query, 'manga') : setType('manga')}
+                  onClick={() => switchSearchType('manga')}
                 >
                   漫画
                 </button>
                 <button
                   className={type === 'novel' ? 'active' : ''}
-                  onClick={() => query ? searchBooks(null, query, 'novel') : setType('novel')}
+                  onClick={() => switchSearchType('novel')}
                 >
                   小説
                 </button>
@@ -1265,8 +1278,8 @@ export default function App() {
                       work={work}
                       saved={saved.has(id)}
                       saving={savingId === id}
-                      saveCount={saveCountMap.get(id) || 0}
-                      reviewCount={reviewCountMap.get(id) || 0}
+                      saveCount={seriesStatsMap.get(seriesKey(work.type, work.title))?.saves || 0}
+                      reviewCount={seriesStatsMap.get(seriesKey(work.type, work.title))?.reviews || 0}
                       onSave={saveWork}
                       onReview={openReview}
                       onOpen={openDetail}
@@ -1285,22 +1298,29 @@ export default function App() {
               </div>
             )}
 
-            <nav className="related-searches" aria-label="関連テーマ">
-              <strong>ほかの{type === 'manga' ? '漫画' : '小説'}テーマも見る</strong>
+            {pageRoute.kind === 'guide' && pageRoute.guide && (
+              <div className="theme-explainer">
+                <h3>{pageRoute.guide.label}の選び方</h3>
+                <p>{pageRoute.guide.description} ここでは定番作品を中心に並べ、シリーズ単位の感想や「読みたい」数も一緒に比較できます。</p>
+              </div>
+            )}
+
+            <nav className="related-searches" aria-label="関連ページ">
+              <strong>{pageRoute.kind === 'guide' ? 'ほかの読書特集も見る' : `ほかの${type === 'manga' ? '漫画' : '小説'}テーマも見る`}</strong>
               <div>
-                {discoveryTopics
-                  .filter((topic) => topic.type === type && topic.query !== query)
-                  .slice(0, 4)
-                  .map((topic) => (
+                {(pageRoute.kind === 'guide' ? intentGuides : discoveryTopics)
+                  .filter((item) => item.type === type && item.query !== query)
+                  .slice(0, 5)
+                  .map((item) => (
                     <a
-                      key={`related-${topic.type}-${topic.query}`}
-                      href={searchHref(topic.query, topic.type)}
+                      key={`related-${item.type}-${item.slug}`}
+                      href={pageRoute.kind === 'guide' ? guideHref(item) : topicHref(item)}
                       onClick={(event) => {
                         event.preventDefault()
-                        searchBooks(null, topic.query, topic.type)
+                        searchBooks(null, item.query, item.type)
                       }}
                     >
-                      {topic.emoji} {topic.label}
+                      {item.emoji} {item.label}
                     </a>
                   ))}
               </div>
@@ -1507,6 +1527,36 @@ export default function App() {
           </div>
         </section>
 
+        <section className="content-section intent-section" id="reading-guides">
+          <div className="section-top">
+            <div>
+              <span className="section-kicker">READING GUIDES</span>
+              <h2>今の状況から、読みたい作品を探す。</h2>
+              <p>「完結済み」「一気読みしたい」「大学生におすすめ」など、ジャンルより具体的な条件から探せます。</p>
+            </div>
+          </div>
+          <div className="intent-guide-grid">
+            {intentGuides.map((guide) => (
+              <a
+                key={`intent-${guide.type}-${guide.slug}`}
+                href={guideHref(guide)}
+                onClick={(event) => {
+                  event.preventDefault()
+                  searchBooks(null, guide.query, guide.type)
+                }}
+              >
+                <span className="intent-guide-emoji">{guide.emoji}</span>
+                <div>
+                  <small>{guide.type === 'manga' ? '漫画' : '小説'}</small>
+                  <strong>{guide.label}</strong>
+                  <p>{guide.description}</p>
+                </div>
+                <ChevronRight size={18} />
+              </a>
+            ))}
+          </div>
+        </section>
+
         <section className="content-section review-section" id="reviews">
           <div className="section-top">
             <div>
@@ -1566,8 +1616,11 @@ export default function App() {
         <nav className="footer-links" aria-label="フッターメニュー">
           <a href={rankingHref('manga')}>漫画ランキング</a>
           <a href={rankingHref('novel')}>小説ランキング</a>
-          {discoveryTopics.slice(0, 5).map((topic) => (
+          {discoveryTopics.slice(0, 4).map((topic) => (
             <a key={`footer-${topic.type}-${topic.slug}`} href={topicHref(topic)}>{topic.label}</a>
+          ))}
+          {intentGuides.slice(0, 4).map((guide) => (
+            <a key={`footer-guide-${guide.type}-${guide.slug}`} href={guideHref(guide)}>{guide.label}</a>
           ))}
         </nav>
         <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。共有ランキングはヨミピク内の反応を集計しています。</small>
