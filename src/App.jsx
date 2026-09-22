@@ -42,15 +42,18 @@ function sourceBookId(work) {
   return id.startsWith('google-') ? id.slice(7) : ''
 }
 
-function buildDetailUrl(work) {
+function detailHref(work) {
   const sourceId = sourceBookId(work)
-  const url = new URL(window.location.href)
-  url.hash = ''
-  if (sourceId) {
-    url.searchParams.set('book', sourceId)
-    url.searchParams.set('type', work?.type === 'novel' ? 'novel' : 'manga')
-  }
-  return url.toString()
+  if (!sourceId) return '#'
+  const params = new URLSearchParams({
+    book: sourceId,
+    type: work?.type === 'novel' ? 'novel' : 'manga',
+  })
+  return `/?${params.toString()}`
+}
+
+function buildDetailUrl(work) {
+  return new URL(detailHref(work), window.location.origin).toString()
 }
 
 function rowWork(row) {
@@ -103,12 +106,17 @@ function Stars({ score }) {
 function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, onOpen, saving }) {
   return (
     <article className="work-card real-work-card">
-      <button className="work-cover-button" onClick={() => onOpen(work)} aria-label={`${work.title}の詳細を見る`}>
+      <a
+        className="work-cover-button"
+        href={detailHref(work)}
+        onClick={(event) => { event.preventDefault(); onOpen(work) }}
+        aria-label={`${work.title}の詳細を見る`}
+      >
         <Cover work={work} />
-      </button>
+      </a>
       <div className="work-body">
         <div className="work-meta">{work.genre || '書籍'}</div>
-        <button className="work-title-button" onClick={() => onOpen(work)}>{work.title}</button>
+        <a className="work-title-button" href={detailHref(work)} onClick={(event) => { event.preventDefault(); onOpen(work) }}>{work.title}</a>
         <p className="author">{work.author || '著者情報なし'}</p>
         <div className="metrics result-metrics">
           <Stars score={work.score} />
@@ -381,10 +389,69 @@ export default function App() {
   }
 
   useEffect(() => {
-    const originalTitle = 'ヨミピク | 次に読む一冊が、きっと見つかる。'
-    document.title = detailWork ? `${detailWork.title} | ヨミピク` : originalTitle
-    return () => { document.title = originalTitle }
-  }, [detailWork])
+    const homeTitle = 'ヨミピク｜漫画・小説の人気ランキング・感想・読みたい本棚'
+    const homeDescription = 'ヨミピクは、漫画・小説を検索し、みんなの感想や評価、人気ランキングから次に読む一冊を探せる読書コミュニティ。気になる作品は「読みたい本棚」に保存できます。'
+    const detailDescription = detailWork
+      ? `${detailWork.title}${detailWork.author ? `（${detailWork.author}）` : ''}の感想・評価をヨミピクでチェック。みんなのレビューや「読みたい」数から、次に読む一冊を探せます。`
+      : homeDescription
+    const pageTitle = detailWork ? `${detailWork.title}の感想・評価｜ヨミピク` : homeTitle
+    const pageUrl = detailWork ? buildDetailUrl(detailWork) : 'https://yomipic.vercel.app/'
+    const pageImage = detailWork?.image || 'https://yomipic.vercel.app/favicon.svg'
+
+    const setMeta = (selector, value) => {
+      const element = document.querySelector(selector)
+      if (element) element.setAttribute('content', value)
+    }
+
+    document.title = pageTitle
+    setMeta('meta[name="description"]', detailDescription)
+    setMeta('meta[property="og:title"]', pageTitle)
+    setMeta('meta[property="og:description"]', detailDescription)
+    setMeta('meta[property="og:url"]', pageUrl)
+    setMeta('meta[property="og:image"]', pageImage)
+    setMeta('meta[name="twitter:title"]', pageTitle)
+    setMeta('meta[name="twitter:description"]', detailDescription)
+    setMeta('meta[name="twitter:image"]', pageImage)
+
+    const canonical = document.querySelector('link[rel="canonical"]')
+    if (canonical) canonical.setAttribute('href', pageUrl)
+
+    let script = document.getElementById('yomipic-book-jsonld')
+    if (detailWork) {
+      if (!script) {
+        script = document.createElement('script')
+        script.id = 'yomipic-book-jsonld'
+        script.type = 'application/ld+json'
+        document.head.appendChild(script)
+      }
+
+      const bookData = {
+        '@context': 'https://schema.org',
+        '@type': 'Book',
+        name: detailWork.title,
+        url: pageUrl,
+        image: detailWork.image || undefined,
+        genre: detailWork.genre || undefined,
+        author: detailWork.author ? { '@type': 'Person', name: detailWork.author } : undefined,
+        aggregateRating: detailReviews.length
+          ? {
+              '@type': 'AggregateRating',
+              ratingValue: Number(detailAverage.toFixed(2)),
+              reviewCount: detailReviews.length,
+              bestRating: 5,
+              worstRating: 1,
+            }
+          : undefined,
+      }
+      script.textContent = JSON.stringify(bookData)
+    } else if (script) {
+      script.remove()
+    }
+
+    return () => {
+      document.title = homeTitle
+    }
+  }, [detailWork, detailAverage, detailReviews.length])
 
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
@@ -689,12 +756,17 @@ export default function App() {
                     {index < 3 ? <Trophy size={13} /> : null}
                     {index + 1}
                   </div>
-                  <button className="work-cover-button" onClick={() => openDetail(work)} aria-label={`${work.title}の詳細を見る`}>
+                  <a
+                    className="work-cover-button"
+                    href={detailHref(work)}
+                    onClick={(event) => { event.preventDefault(); openDetail(work) }}
+                    aria-label={`${work.title}の詳細を見る`}
+                  >
                     <Cover work={work} />
-                  </button>
+                  </a>
                   <div className="work-body">
                     <div className="work-meta">{work.genre}</div>
-                    <button className="work-title-button" onClick={() => openDetail(work)}>{work.title}</button>
+                    <a className="work-title-button" href={detailHref(work)} onClick={(event) => { event.preventDefault(); openDetail(work) }}>{work.title}</a>
                     <p className="author">{work.author}</p>
                     <p className="tagline">{work.tagline}</p>
                     <div className="metrics">
@@ -741,12 +813,17 @@ export default function App() {
             <div className="bookshelf-grid">
               {bookshelfWorks.map((work) => (
                 <article className="bookshelf-card" key={work.dbId}>
-                  <button className="bookshelf-cover" onClick={() => openDetail(work)} aria-label={`${work.title}の詳細を見る`}>
+                  <a
+                    className="bookshelf-cover"
+                    href={detailHref(work)}
+                    onClick={(event) => { event.preventDefault(); openDetail(work) }}
+                    aria-label={`${work.title}の詳細を見る`}
+                  >
                     <Cover work={work} />
-                  </button>
+                  </a>
                   <div className="bookshelf-body">
                     <span>{work.genre || (work.type === 'manga' ? '漫画' : '小説')}</span>
-                    <button onClick={() => openDetail(work)}>{work.title}</button>
+                    <a className="bookshelf-title-link" href={detailHref(work)} onClick={(event) => { event.preventDefault(); openDetail(work) }}>{work.title}</a>
                     <p>{work.author || '著者情報なし'}</p>
                     <div className="bookshelf-metrics">
                       <Stars score={work.score} />
