@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Search,
@@ -319,6 +319,7 @@ export default function App() {
   const [liveError, setLiveError] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
   const [pageRoute, setPageRoute] = useState(() => routeInfo())
+  const lastTrackedPage = useRef('')
 
   useEffect(() => {
     localStorage.setItem('yomipic-saved', JSON.stringify([...saved]))
@@ -705,9 +706,19 @@ export default function App() {
     try {
       if (navigator.share) {
         await navigator.share(shareData)
+        trackEvent('yomipic_share', {
+          method: 'native',
+          content_type: detailWork.type === 'novel' ? 'novel' : 'manga',
+          item_name: seriesTitle(detailWork.title),
+        })
         setShareStatus('共有しました')
       } else {
         await navigator.clipboard.writeText(url)
+        trackEvent('yomipic_share', {
+          method: 'clipboard',
+          content_type: detailWork.type === 'novel' ? 'novel' : 'manga',
+          item_name: seriesTitle(detailWork.title),
+        })
         setShareStatus('リンクをコピーしました')
       }
     } catch (error) {
@@ -914,6 +925,25 @@ export default function App() {
     liveResults,
   ])
 
+  useEffect(() => {
+    if (typeof window.gtag !== 'function') return
+
+    const pageLocation = window.location.href
+    if (lastTrackedPage.current === pageLocation) return
+    lastTrackedPage.current = pageLocation
+
+    window.gtag('event', 'page_view', {
+      page_title: document.title,
+      page_location: pageLocation,
+      page_path: `${window.location.pathname}${window.location.search}`,
+    })
+  }, [detailWork, pageRoute, hasSearched, query, type])
+
+  const trackEvent = (name, params = {}) => {
+    if (typeof window.gtag !== 'function') return
+    window.gtag('event', name, params)
+  }
+
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
 
@@ -962,6 +992,10 @@ export default function App() {
           return next
         })
         setSharedSaves((prev) => prev.filter((row) => !removeSet.has(row.work_id)))
+        trackEvent('yomipic_unsave', {
+          content_type: work.type === 'novel' ? 'novel' : 'manga',
+          item_name: seriesTitle(work.title),
+        })
       } else {
         const response = await fetch('/api/community', {
           method: 'POST',
@@ -984,6 +1018,10 @@ export default function App() {
 
         setSaved((prev) => new Set([...prev, stableId]))
         if (data.save) setSharedSaves((prev) => [data.save, ...prev])
+        trackEvent('yomipic_save', {
+          content_type: work.type === 'novel' ? 'novel' : 'manga',
+          item_name: seriesTitle(work.title),
+        })
       }
     } catch (error) {
       setCommunityError(error.message || (isSaved ? '「読みたい」を解除できませんでした' : '「読みたい」を保存できませんでした'))
@@ -1063,6 +1101,12 @@ export default function App() {
       if (!response.ok) throw new Error(data.error || '感想を投稿できませんでした')
 
       if (data.review) setSharedReviews((prev) => [data.review, ...prev])
+      trackEvent('yomipic_review', {
+        content_type: selected.type === 'novel' ? 'novel' : 'manga',
+        item_name: seriesTitle(selected.title),
+        rating,
+        mood: mood || 'none',
+      })
       setReviewOpen(false)
       setReviewText('')
     } catch (error) {
@@ -1116,6 +1160,11 @@ export default function App() {
         })
       }
       setLiveResults(uniqueSeries)
+      trackEvent('yomipic_search', {
+        search_term: term,
+        content_type: targetType,
+        results_count: uniqueSeries.length,
+      })
       if (!options.noScroll) {
         setTimeout(() => document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
       }
