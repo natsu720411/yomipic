@@ -920,3 +920,16 @@ footer small { font-size: 10px; }
   opacity: .6;
   cursor: wait;
 }
+
+
+.bookshelf-title-link {
+  margin: 6px 0 3px;
+  color: var(--ink);
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 900;
+}
+.bookshelf-title-link:hover {
+  color: var(--purple);
+}
