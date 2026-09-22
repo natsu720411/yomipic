@@ -149,8 +149,13 @@ a { color: inherit; text-decoration: none; }
 .discover-section { max-width: 1180px; margin: 0 auto 40px; padding: 42px; border-radius: 26px; display: grid; grid-template-columns: .85fr 1.15fr; gap: 55px; align-items: center; background: #18151f; color: white; box-shadow: 0 22px 70px rgba(30,21,45,.16); }
 .discover-copy p { color: #bcb5c5; }
 .mood-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
-.mood-grid button { min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; text-align: left; border: 1px solid #3b3544; border-radius: 13px; background: #24202c; color: #f7f3fa; font-weight: 800; font-size: 13px; }
-.mood-grid button:hover { background: #312a3d; border-color: #554965; }
+.mood-grid button,
+.mood-grid a { min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; text-align: left; border: 1px solid #3b3544; border-radius: 13px; background: #24202c; color: #f7f3fa; font-weight: 800; font-size: 13px; }
+.mood-grid button:hover,
+.mood-grid a:hover { background: #312a3d; border-color: #554965; }
+.topic-link-grid a > span { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 7px; }
+.topic-link-grid a b { font-size: 17px; line-height: 1; }
+.topic-link-grid a small { padding: 3px 6px; border-radius: 999px; background: #3a3346; color: #cfc5da; font-size: 8px; font-weight: 900; }
 
 .review-section { padding-top: 65px; }
 .review-feed { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
@@ -243,7 +248,10 @@ footer small { font-size: 10px; }
 
   .discover-section { margin-bottom: 8px; padding: 28px 22px; }
   .mood-grid { gap: 7px; }
-  .mood-grid button { min-height: 52px; padding: 0 12px; font-size: 11px; }
+  .mood-grid button,
+  .mood-grid a { min-height: 52px; padding: 0 12px; font-size: 11px; }
+  .topic-link-grid a > span { gap: 5px; }
+  .topic-link-grid a b { font-size: 15px; }
 
   .review-feed { grid-template-columns: 1fr; }
   .cta-section { padding: 30px 24px; flex-direction: column; align-items: flex-start; }
