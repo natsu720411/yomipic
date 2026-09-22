@@ -556,79 +556,172 @@ export default function App() {
   }
 
   useEffect(() => {
+    const origin = 'https://yomipic.vercel.app'
     const homeTitle = 'ヨミピク｜漫画・小説の人気ランキング・感想・読みたい本棚'
     const homeDescription = 'ヨミピクは、漫画・小説を検索し、みんなの感想や評価、人気ランキングから次に読む一冊を探せる読書コミュニティ。気になる作品は「読みたい本棚」に保存できます。'
     const searchLabel = query ? searchPageLabel(query, type) : ''
+    const rankingLabel = pageRoute.type === 'novel' ? '小説' : '漫画'
+    const rankingDescription = `${rankingLabel}の人気作品をタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。`
+    const themeDescription = pageRoute.kind === 'theme' && pageRoute.topic
+      ? `${pageRoute.topic.label}のおすすめ・定番作品を探せます。${pageRoute.topic.description} 感想や「読みたい」数もチェックできます。`
+      : ''
     const searchDescription = searchLabel
-      ? `${searchLabel}を探すならヨミピク。実在する作品を検索し、みんなの感想・評価・「読みたい」数を見ながら次に読む一冊を見つけられます。`
+      ? `${searchLabel}をヨミピクで検索。実在する作品を探し、みんなの感想・評価・「読みたい」数を確認できます。`
       : homeDescription
     const detailDescription = detailWork
       ? `${detailWork.title}${detailWork.author ? `（${detailWork.author}）` : ''}の感想・評価をヨミピクでチェック。みんなのレビューや「読みたい」数から、次に読む一冊を探せます。`
-      : (hasSearched && query ? searchDescription : homeDescription)
+      : ''
+
+    const isArbitrarySearch = !detailWork && hasSearched && query && pageRoute.kind === 'home'
     const pageTitle = detailWork
       ? `${detailWork.title}の感想・評価｜ヨミピク`
-      : (hasSearched && query ? `${searchLabel}を探す｜おすすめ作品・感想｜ヨミピク` : homeTitle)
+      : pageRoute.kind === 'ranking'
+        ? `${rankingLabel}人気ランキング｜おすすめ作品・感想｜ヨミピク`
+        : pageRoute.kind === 'theme' && pageRoute.topic
+          ? `${pageRoute.topic.label}おすすめ・人気作品｜ヨミピク`
+          : hasSearched && query
+            ? `${searchLabel}を探す｜ヨミピク`
+            : homeTitle
+
+    const pageDescription = detailWork
+      ? detailDescription
+      : pageRoute.kind === 'ranking'
+        ? rankingDescription
+        : pageRoute.kind === 'theme'
+          ? themeDescription
+          : hasSearched && query
+            ? searchDescription
+            : homeDescription
+
     const pageUrl = detailWork
       ? buildDetailUrl(detailWork)
-      : (hasSearched && query
-          ? new URL(searchHref(query, type), 'https://yomipic.vercel.app').toString()
-          : 'https://yomipic.vercel.app/')
-    const pageImage = detailWork?.image || 'https://yomipic.vercel.app/favicon.svg'
+      : pageRoute.kind === 'ranking'
+        ? `${origin}${rankingHref(pageRoute.type)}`
+        : pageRoute.kind === 'theme' && pageRoute.topic
+          ? `${origin}${topicHref(pageRoute.topic)}`
+          : hasSearched && query
+            ? `${origin}/?q=${encodeURIComponent(query)}&type=${type}`
+            : `${origin}/`
+
+    const pageImage = detailWork?.image || `${origin}/favicon.svg`
 
     const setMeta = (selector, value) => {
       const element = document.querySelector(selector)
       if (element) element.setAttribute('content', value)
     }
 
-    document.title = pageTitle
-    setMeta('meta[name="description"]', detailDescription)
-    setMeta('meta[property="og:title"]', pageTitle)
-    setMeta('meta[property="og:description"]', detailDescription)
-    setMeta('meta[property="og:url"]', pageUrl)
-    setMeta('meta[property="og:image"]', pageImage)
-    setMeta('meta[name="twitter:title"]', pageTitle)
-    setMeta('meta[name="twitter:description"]', detailDescription)
-    setMeta('meta[name="twitter:image"]', pageImage)
-
-    const canonical = document.querySelector('link[rel="canonical"]')
-    if (canonical) canonical.setAttribute('href', pageUrl)
-
-    let script = document.getElementById('yomipic-book-jsonld')
-    if (detailWork) {
+    const upsertJsonLd = (id, data) => {
+      let script = document.getElementById(id)
+      if (!data) {
+        script?.remove()
+        return
+      }
       if (!script) {
         script = document.createElement('script')
-        script.id = 'yomipic-book-jsonld'
+        script.id = id
         script.type = 'application/ld+json'
         document.head.appendChild(script)
       }
-
-      const bookData = {
-        '@context': 'https://schema.org',
-        '@type': 'Book',
-        name: detailWork.title,
-        url: pageUrl,
-        image: detailWork.image || undefined,
-        genre: detailWork.genre || undefined,
-        author: detailWork.author ? { '@type': 'Person', name: detailWork.author } : undefined,
-        aggregateRating: detailReviews.length
-          ? {
-              '@type': 'AggregateRating',
-              ratingValue: Number(detailAverage.toFixed(2)),
-              reviewCount: detailReviews.length,
-              bestRating: 5,
-              worstRating: 1,
-            }
-          : undefined,
-      }
-      script.textContent = JSON.stringify(bookData)
-    } else if (script) {
-      script.remove()
+      script.textContent = JSON.stringify(data)
     }
+
+    document.title = pageTitle
+    setMeta('meta[name="description"]', pageDescription)
+    setMeta('meta[name="robots"]', isArbitrarySearch ? 'noindex,follow,max-image-preview:large' : 'index,follow,max-image-preview:large')
+    setMeta('meta[property="og:title"]', pageTitle)
+    setMeta('meta[property="og:description"]', pageDescription)
+    setMeta('meta[property="og:url"]', pageUrl)
+    setMeta('meta[property="og:image"]', pageImage)
+    setMeta('meta[name="twitter:title"]', pageTitle)
+    setMeta('meta[name="twitter:description"]', pageDescription)
+    setMeta('meta[name="twitter:image"]', pageImage)
+
+    let canonical = document.querySelector('link[rel="canonical"]')
+    if (!canonical) {
+      canonical = document.createElement('link')
+      canonical.setAttribute('rel', 'canonical')
+      document.head.appendChild(canonical)
+    }
+    canonical.setAttribute('href', pageUrl)
+
+    const bookData = detailWork
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Book',
+          name: detailWork.title,
+          url: pageUrl,
+          image: detailWork.image || undefined,
+          genre: detailWork.genre || undefined,
+          author: detailWork.author ? { '@type': 'Person', name: detailWork.author } : undefined,
+          aggregateRating: detailReviews.length
+            ? {
+                '@type': 'AggregateRating',
+                ratingValue: Number(detailAverage.toFixed(2)),
+                reviewCount: detailReviews.length,
+                bestRating: 5,
+                worstRating: 1,
+              }
+            : undefined,
+        }
+      : null
+    upsertJsonLd('yomipic-book-jsonld', bookData)
+
+    const listWorks = !detailWork && pageRoute.kind === 'ranking'
+      ? works.slice(0, 10)
+      : !detailWork && pageRoute.kind === 'theme'
+        ? liveResults.slice(0, 10)
+        : []
+
+    const listData = listWorks.length
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: pageRoute.kind === 'ranking'
+            ? `${rankingLabel}人気ランキング`
+            : `${pageRoute.topic?.label || searchLabel}おすすめ作品`,
+          itemListElement: listWorks.map((work, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: work.title,
+            url: new URL(detailHref(work), origin).toString(),
+          })),
+        }
+      : null
+    upsertJsonLd('yomipic-list-jsonld', listData)
+
+    const breadcrumbItems = pageRoute.kind === 'ranking'
+      ? [
+          { '@type': 'ListItem', position: 1, name: 'ヨミピク', item: `${origin}/` },
+          { '@type': 'ListItem', position: 2, name: `${rankingLabel}人気ランキング`, item: pageUrl },
+        ]
+      : pageRoute.kind === 'theme' && pageRoute.topic
+        ? [
+            { '@type': 'ListItem', position: 1, name: 'ヨミピク', item: `${origin}/` },
+            { '@type': 'ListItem', position: 2, name: pageRoute.topic.label, item: pageUrl },
+          ]
+        : []
+
+    upsertJsonLd(
+      'yomipic-breadcrumb-jsonld',
+      breadcrumbItems.length
+        ? { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbItems }
+        : null,
+    )
 
     return () => {
       document.title = homeTitle
     }
-  }, [detailWork, detailAverage, detailReviews.length, hasSearched, query, type])
+  }, [
+    detailWork,
+    detailAverage,
+    detailReviews.length,
+    hasSearched,
+    query,
+    type,
+    pageRoute,
+    works,
+    liveResults,
+  ])
 
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
@@ -848,16 +941,16 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="ヨミピク トップ">
+        <a className="brand" href="/" aria-label="ヨミピク トップ">
           <span className="brand-icon"><BookOpen size={21} /></span>
           <span>ヨミピク</span>
         </a>
 
         <nav className="desktop-nav" aria-label="メインメニュー">
-          <a href="#ranking">ランキング</a>
-          <a href="#bookshelf">読みたい本棚</a>
-          <a href="#reviews">みんなの感想</a>
-          <a href="#discover">作品を探す</a>
+          <a href={rankingHref('manga')} onClick={(event) => navigateRanking(event, 'manga')}>漫画ランキング</a>
+          <a href={rankingHref('novel')} onClick={(event) => navigateRanking(event, 'novel')}>小説ランキング</a>
+          <a href="/#discover">人気テーマ</a>
+          <a href="/#reviews">みんなの感想</a>
         </nav>
 
         <button className="header-action" onClick={() => {
@@ -876,8 +969,22 @@ export default function App() {
         <section className="hero">
           <div className="hero-inner">
             <div className="eyebrow"><Sparkles size={16} /> みんなの「読んだ」が、次の一冊につながる。</div>
-            <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
-            <p>漫画と小説の人気ランキングをチェック。読んだ作品には、気軽にひとこと感想を残せます。</p>
+            {pageRoute.kind === 'ranking' ? (
+              <>
+                <h1>{pageRoute.type === 'novel' ? '小説' : '漫画'}人気ランキング<br /><span>次に読む作品を見つけよう。</span></h1>
+                <p>巻ごとではなく作品タイトル単位で集計。外部の人気情報を土台に、ヨミピク内の「読みたい」と感想を反映します。</p>
+              </>
+            ) : pageRoute.kind === 'theme' && pageRoute.topic ? (
+              <>
+                <h1>{pageRoute.topic.label}<br /><span>おすすめ・人気作品</span></h1>
+                <p>{pageRoute.topic.description} 感想や「読みたい」数も見ながら選べます。</p>
+              </>
+            ) : (
+              <>
+                <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
+                <p>漫画と小説の人気ランキングをチェック。読んだ作品には、気軽にひとこと感想を残せます。</p>
+              </>
+            )}
 
             <form className="search-box" onSubmit={searchBooks}>
               <Search size={21} />
@@ -894,9 +1001,18 @@ export default function App() {
             </form>
 
             <div className="hero-chips">
-              <span>検索例:</span>
-              {['青春', 'ミステリー', '恋愛', 'ファンタジー'].map((word) => (
-                <button key={word} onClick={() => searchBooks(null, word)}>{word}</button>
+              <span>人気テーマ:</span>
+              {discoveryTopics.filter((topic) => topic.type === type).slice(0, 5).map((topic) => (
+                <a
+                  key={`hero-${topic.type}-${topic.slug}`}
+                  href={topicHref(topic)}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    searchBooks(null, topic.query, topic.type)
+                  }}
+                >
+                  {topic.label}
+                </a>
               ))}
             </div>
           </div>
@@ -1214,8 +1330,15 @@ export default function App() {
       </main>
 
       <footer>
-        <a className="brand footer-brand" href="#top"><span className="brand-icon"><BookOpen size={19} /></span><span>ヨミピク</span></a>
+        <a className="brand footer-brand" href="/"><span className="brand-icon"><BookOpen size={19} /></span><span>ヨミピク</span></a>
         <p>漫画・小説のランキングと感想を楽しむ読書コミュニティ。</p>
+        <nav className="footer-links" aria-label="フッターメニュー">
+          <a href={rankingHref('manga')}>漫画ランキング</a>
+          <a href={rankingHref('novel')}>小説ランキング</a>
+          {discoveryTopics.slice(0, 5).map((topic) => (
+            <a key={`footer-${topic.type}-${topic.slug}`} href={topicHref(topic)}>{topic.label}</a>
+          ))}
+        </nav>
         <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。共有ランキングはヨミピク内の反応を集計しています。</small>
       </footer>
 
