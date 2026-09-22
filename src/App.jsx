@@ -189,6 +189,8 @@ export default function App() {
   const [reviewText, setReviewText] = useState('')
   const [sharedReviews, setSharedReviews] = useState([])
   const [sharedSaves, setSharedSaves] = useState([])
+  const [starterByType, setStarterByType] = useState({ manga: [], novel: [] })
+  const [rankingLoading, setRankingLoading] = useState(false)
   const [communityError, setCommunityError] = useState('')
   const [postingReview, setPostingReview] = useState(false)
   const [deletingReviewId, setDeletingReviewId] = useState(null)
@@ -221,6 +223,30 @@ export default function App() {
 
     return () => { active = false }
   }, [deviceId])
+
+  useEffect(() => {
+    let active = true
+    setRankingLoading(true)
+
+    fetch(`/api/featured?type=${type}`)
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || '初期ランキングを取得できませんでした')
+        if (active) {
+          setStarterByType((prev) => ({ ...prev, [type]: data.items || [] }))
+        }
+      })
+      .catch((error) => {
+        if (active && !starterByType[type]?.length) {
+          setCommunityError(error.message || '初期ランキングを取得できませんでした')
+        }
+      })
+      .finally(() => {
+        if (active) setRankingLoading(false)
+      })
+
+    return () => { active = false }
+  }, [type])
 
   useEffect(() => {
     let active = true
@@ -304,11 +330,61 @@ export default function App() {
   }, [sharedSaves, sharedReviews])
 
   const works = useMemo(() => {
-    const real = communityWorks.filter((work) => work.type === type)
-    if (sort === 'rising') return [...real].sort((a, b) => (b.recent || 0) - (a.recent || 0) || b.popularity - a.popularity)
-    if (sort === 'rated') return [...real].sort((a, b) => b.score - a.score || b.reviews - a.reviews)
-    return [...real].sort((a, b) => b.popularity - a.popularity)
-  }, [communityWorks, type, sort])
+    const community = communityWorks.filter((work) => work.type === type)
+    const communityById = new Map(
+      community.map((work) => [work.dbId || dbWorkId(work), work])
+    )
+    const used = new Set()
+
+    const seeded = (starterByType[type] || []).map((starter) => {
+      const id = dbWorkId(starter)
+      const reactions = communityById.get(id)
+      used.add(id)
+
+      const saves = reactions?.saves || 0
+      const reviews = reactions?.reviews || 0
+      const recent = reactions?.recent || 0
+      const baseline = Math.max(0, Number(starter.baselineScore || 0) - 60)
+
+      return {
+        ...starter,
+        dbId: id,
+        saves,
+        reviews,
+        recent,
+        score: reviews ? reactions.score : 0,
+        popularity: baseline + saves * 7 + reviews * 10 + recent * 4,
+        tagline: reactions
+          ? '外部人気を参考にした初期順位へ、ヨミピク内の反応を反映しています。'
+          : '公開ランキングや販売動向を参考にした初期ランキング作品です。',
+      }
+    })
+
+    const communityOnly = community
+      .filter((work) => !used.has(work.dbId || dbWorkId(work)))
+      .map((work) => ({
+        ...work,
+        popularity: (work.saves || 0) * 7 + (work.reviews || 0) * 10 + (work.recent || 0) * 4,
+      }))
+
+    const combined = [...seeded, ...communityOnly]
+
+    if (sort === 'rising') {
+      return combined.sort((a, b) =>
+        (b.recent || 0) - (a.recent || 0) ||
+        ((b.saves || 0) + (b.reviews || 0)) - ((a.saves || 0) + (a.reviews || 0)) ||
+        b.popularity - a.popularity
+      )
+    }
+    if (sort === 'rated') {
+      return combined.sort((a, b) =>
+        b.score - a.score ||
+        b.reviews - a.reviews ||
+        b.popularity - a.popularity
+      )
+    }
+    return combined.sort((a, b) => b.popularity - a.popularity)
+  }, [communityWorks, starterByType, type, sort])
 
   const rankingIsEmpty = works.length === 0
 
@@ -813,7 +889,13 @@ export default function App() {
             <div>
               <span className="section-kicker">RANKING</span>
               <h2>ヨミピク人気ランキング</h2>
-              <p>{rankingIsEmpty ? 'まだこのジャンルのランキングデータがありません。最初の「読みたい」や感想を投稿するとランキングが始まります。' : 'みんなの「読みたい」と感想をもとにしたヨミピク独自ランキングです。'}</p>
+              <p>{rankingIsEmpty ? 'ランキングを準備しています。' : '公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映して順位が変わります。'}</p>
+              <div className="ranking-sources">
+                参考：
+                <a href="https://booklive.jp/feature/index/id/firsthalf" target="_blank" rel="noreferrer">BookLive 2026年上半期</a>
+                <span>・</span>
+                <a href="https://www.oricon.co.jp/special/73240/" target="_blank" rel="noreferrer">ORICON 2025年間本ランキング</a>
+              </div>
             </div>
 
             <div className="type-switch" role="tablist" aria-label="作品タイプ">
@@ -824,7 +906,7 @@ export default function App() {
 
           <div className="sort-tabs">
             <button className={sort === 'weekly' ? 'active' : ''} onClick={() => setSort('weekly')}>
-              <Flame size={16} /> 今週人気
+              <Flame size={16} /> 総合人気
             </button>
             <button className={sort === 'rising' ? 'active' : ''} onClick={() => setSort('rising')}>
               <TrendingUp size={16} /> 急上昇
@@ -834,11 +916,17 @@ export default function App() {
             </button>
           </div>
 
-          {rankingIsEmpty ? (
+          {rankingLoading && rankingIsEmpty ? (
+            <div className="search-status">
+              <LoaderCircle size={28} className="spin" />
+              <h3>ランキングを準備しています</h3>
+              <p>定番作品の情報を取得しています…</p>
+            </div>
+          ) : rankingIsEmpty ? (
             <div className="search-status">
               <Trophy size={28} />
-              <h3>まだランキングがありません</h3>
-              <p>実在作品を検索して「読みたい」または感想を投稿すると、このランキングに反映されます。</p>
+              <h3>ランキングを取得できませんでした</h3>
+              <p>作品検索はそのまま使えます。少し時間を置いて再読み込みしてください。</p>
             </div>
           ) : (
             <div className="ranking-grid">
@@ -857,7 +945,7 @@ export default function App() {
                     <Cover work={work} />
                   </a>
                   <div className="work-body">
-                    <div className="work-meta">{work.genre}</div>
+                    <div className="work-meta">{work.seeded ? '定番候補 ・ ' : ''}{work.genre}</div>
                     <a className="work-title-button" href={detailHref(work)} onClick={(event) => { event.preventDefault(); openDetail(work) }}>{work.title}</a>
                     <p className="author">{work.author}</p>
                     <p className="tagline">{work.tagline}</p>
