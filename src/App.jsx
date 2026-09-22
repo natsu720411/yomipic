@@ -137,6 +137,12 @@ function dbWorkId(work) {
   return `${work.type || 'book'}::${work.id}`
 }
 
+function seriesWorkId(work) {
+  const type = work?.type === 'novel' ? 'novel' : 'manga'
+  const title = seriesTitle(work?.seriesTitle || work?.title || '')
+  return `${type}::series-${encodeURIComponent(title.normalize('NFKC').toLowerCase())}`
+}
+
 function seriesTitle(value) {
   return String(value || '')
     .normalize('NFKC')
@@ -417,6 +423,18 @@ export default function App() {
     return map
   }, [sharedReviews])
 
+  const savedSeriesKeys = useMemo(() => {
+    const keys = new Set()
+
+    for (const row of sharedSaves) {
+      if (!saved.has(row.work_id)) continue
+      const [rowType = 'book'] = String(row.work_id || '').split('::')
+      keys.add(seriesKey(rowType, row.title))
+    }
+
+    return keys
+  }, [saved, sharedSaves])
+
   const seriesStatsMap = useMemo(() => {
     const map = new Map()
 
@@ -556,26 +574,32 @@ export default function App() {
   const rankingIsEmpty = works.length === 0
 
   const bookshelfWorks = useMemo(() => {
-    const byId = new Map()
+    const bySeries = new Map()
+
     for (const row of sharedSaves) {
-      if (!byId.has(row.work_id)) byId.set(row.work_id, rowWork(row))
+      if (!saved.has(row.work_id)) continue
+      const base = rowWork(row)
+      const key = seriesKey(base.type, row.title)
+
+      if (!bySeries.has(key)) {
+        bySeries.set(key, {
+          ...base,
+          title: seriesTitle(row.title),
+          seriesKey: key,
+        })
+      }
     }
 
-    return [...saved]
-      .map((id) => byId.get(id))
-      .filter(Boolean)
-      .map((work) => ({
+    return [...bySeries.values()].map((work) => {
+      const stats = seriesStatsMap.get(work.seriesKey) || {}
+      return {
         ...work,
-        score: (() => {
-          const reviews = sharedReviews.filter((review) => review.work_id === work.dbId)
-          return reviews.length
-            ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length
-            : 0
-        })(),
-        reviews: reviewCountMap.get(work.dbId) || 0,
-        saves: saveCountMap.get(work.dbId) || 0,
-      }))
-  }, [saved, sharedSaves, sharedReviews, reviewCountMap, saveCountMap])
+        score: stats.score || 0,
+        reviews: stats.reviews || 0,
+        saves: stats.saves || 0,
+      }
+    })
+  }, [saved, sharedSaves, seriesStatsMap])
 
   const detailDbId = detailWork ? (detailWork.dbId || dbWorkId(detailWork)) : ''
   const detailSeriesKey = detailWork ? seriesKey(detailWork.type, detailWork.seriesTitle || detailWork.title) : ''
@@ -870,46 +894,72 @@ export default function App() {
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
 
-    const id = work.dbId || dbWorkId(work)
-    const isSaved = saved.has(id)
+    const key = seriesKey(work.type, work.seriesTitle || work.title)
+    const stableId = seriesWorkId(work)
+    const ownRows = sharedSaves.filter((row) => {
+      if (!saved.has(row.work_id)) return false
+      const [rowType = 'book'] = String(row.work_id || '').split('::')
+      return seriesKey(rowType, row.title) === key
+    })
+    const ownIds = [...new Set(ownRows.map((row) => row.work_id))]
+    const isSaved = ownIds.length > 0 || savedSeriesKeys.has(key)
 
-    setSavingId(id)
+    setSavingId(key)
     setCommunityError('')
 
     try {
-      const response = await fetch('/api/community', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kind: isSaved ? 'unsave' : 'save',
-          deviceId,
-          work: {
-            workId: id,
-            title: seriesTitle(work.title),
-            author: work.author || '',
-            imageUrl: work.image || '',
-            genre: work.genre || '',
-          },
-        }),
-      })
-
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || (isSaved ? '「読みたい」を解除できませんでした' : '「読みたい」を保存できませんでした'))
-
       if (isSaved) {
+        const idsToRemove = ownIds.length ? ownIds : [stableId]
+
+        for (const id of idsToRemove) {
+          const response = await fetch('/api/community', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              kind: 'unsave',
+              deviceId,
+              work: {
+                workId: id,
+                title: seriesTitle(work.title),
+                author: work.author || '',
+                imageUrl: work.image || '',
+                genre: work.genre || '',
+              },
+            }),
+          })
+
+          const data = await response.json()
+          if (!response.ok) throw new Error(data.error || '「読みたい」を解除できませんでした')
+        }
+
+        const removeSet = new Set(idsToRemove)
         setSaved((prev) => {
           const next = new Set(prev)
-          next.delete(id)
+          for (const id of removeSet) next.delete(id)
           return next
         })
-
-        setSharedSaves((prev) => {
-          const index = prev.findIndex((row) => row.work_id === id)
-          if (index < 0) return prev
-          return [...prev.slice(0, index), ...prev.slice(index + 1)]
-        })
+        setSharedSaves((prev) => prev.filter((row) => !removeSet.has(row.work_id)))
       } else {
-        setSaved((prev) => new Set([...prev, id]))
+        const response = await fetch('/api/community', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: 'save',
+            deviceId,
+            work: {
+              workId: stableId,
+              title: seriesTitle(work.title),
+              author: work.author || '',
+              imageUrl: work.image || '',
+              genre: work.genre || '',
+            },
+          }),
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || '「読みたい」を保存できませんでした')
+
+        setSaved((prev) => new Set([...prev, stableId]))
         if (data.save) setSharedSaves((prev) => [data.save, ...prev])
       }
     } catch (error) {
@@ -974,7 +1024,7 @@ export default function App() {
           kind: 'review',
           deviceId,
           work: {
-            workId: dbWorkId(selected),
+            workId: seriesWorkId(selected),
             title: seriesTitle(selected.title),
             author: selected.author || '',
             imageUrl: selected.image || '',
@@ -1030,7 +1080,19 @@ export default function App() {
       const response = await fetch(`/api/books?q=${encodeURIComponent(term)}&type=${targetType}`)
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || '検索に失敗しました')
-      setLiveResults(data.items || [])
+      const uniqueSeries = []
+      const seenSeries = new Set()
+      for (const item of (data.items || [])) {
+        const key = seriesKey(item.type, item.title)
+        if (seenSeries.has(key)) continue
+        seenSeries.add(key)
+        uniqueSeries.push({
+          ...item,
+          title: seriesTitle(item.title),
+          seriesTitle: seriesTitle(item.title),
+        })
+      }
+      setLiveResults(uniqueSeries)
       if (!options.noScroll) {
         setTimeout(() => document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
       }
@@ -1276,8 +1338,8 @@ export default function App() {
                     <ResultCard
                       key={work.id}
                       work={work}
-                      saved={saved.has(id)}
-                      saving={savingId === id}
+                      saved={savedSeriesKeys.has(seriesKey(work.type, work.title))}
+                      saving={savingId === seriesKey(work.type, work.title)}
                       saveCount={seriesStatsMap.get(seriesKey(work.type, work.title))?.saves || 0}
                       reviewCount={seriesStatsMap.get(seriesKey(work.type, work.title))?.reviews || 0}
                       onSave={saveWork}
@@ -1403,17 +1465,17 @@ export default function App() {
                         <PenLine size={16} /> 感想
                       </button>
                       <button
-                        className={`wishlist-button compact ${saved.has(work.dbId || dbWorkId(work)) ? 'saved' : ''}`}
+                        className={`wishlist-button compact ${savedSeriesKeys.has(seriesKey(work.type, work.title)) ? 'saved' : ''}`}
                         onClick={() => saveWork(work)}
-                        disabled={savingId === (work.dbId || dbWorkId(work))}
-                        aria-label={saved.has(work.dbId || dbWorkId(work)) ? '読みたいを解除' : '読みたいに追加'}
+                        disabled={savingId === seriesKey(work.type, work.title)}
+                        aria-label={savedSeriesKeys.has(seriesKey(work.type, work.title)) ? '読みたいを解除' : '読みたいに追加'}
                       >
-                        {savingId === (work.dbId || dbWorkId(work))
+                        {savingId === seriesKey(work.type, work.title)
                           ? <LoaderCircle size={16} className="spin" />
-                          : saved.has(work.dbId || dbWorkId(work))
+                          : savedSeriesKeys.has(seriesKey(work.type, work.title))
                             ? <BookmarkCheck size={16} />
                             : <Bookmark size={16} />}
-                        <span>{saved.has(work.dbId || dbWorkId(work)) ? '読みたい解除' : '読みたい'}</span>
+                        <span>{savedSeriesKeys.has(seriesKey(work.type, work.title)) ? '読みたい解除' : '読みたい'}</span>
                       </button>
                     </div>
                   </div>
@@ -1482,8 +1544,8 @@ export default function App() {
                       <span><Bookmark size={13} /> {work.saves}</span>
                     </div>
                     <div className="bookshelf-actions">
-                      <button className="bookshelf-remove-button" onClick={() => saveWork(work)} disabled={savingId === work.dbId}>
-                        {savingId === work.dbId ? <LoaderCircle size={14} className="spin" /> : <BookmarkCheck size={14} />}
+                      <button className="bookshelf-remove-button" onClick={() => saveWork(work)} disabled={savingId === seriesKey(work.type, work.title)}>
+                        {savingId === seriesKey(work.type, work.title) ? <LoaderCircle size={14} className="spin" /> : <BookmarkCheck size={14} />}
                         本棚から外す
                       </button>
                       <button className="bookshelf-detail-button" onClick={() => openDetail(work)}>
@@ -1673,16 +1735,16 @@ export default function App() {
                     <PenLine size={17} /> 感想を書く
                   </button>
                   <button
-                    className={`wishlist-button detail-wishlist ${saved.has(detailDbId) ? 'saved' : ''}`}
+                    className={`wishlist-button detail-wishlist ${savedSeriesKeys.has(detailSeriesKey) ? 'saved' : ''}`}
                     onClick={() => saveWork(detailWork)}
-                    disabled={savingId === detailDbId}
+                    disabled={savingId === detailSeriesKey}
                   >
-                    {savingId === detailDbId
+                    {savingId === detailSeriesKey
                       ? <LoaderCircle size={17} className="spin" />
-                      : saved.has(detailDbId)
+                      : savedSeriesKeys.has(detailSeriesKey)
                         ? <BookmarkCheck size={17} />
                         : <Bookmark size={17} />}
-                    <span>{saved.has(detailDbId) ? '読みたい解除' : '読みたい'}</span>
+                    <span>{savedSeriesKeys.has(detailSeriesKey) ? '読みたい解除' : '読みたい'}</span>
                   </button>
                   <button className="detail-share-button" onClick={shareDetail}>
                     <Share2 size={17} /> 共有
