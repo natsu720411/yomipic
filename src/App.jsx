@@ -1028,6 +1028,18 @@ export default function App() {
           <div className="hero-orb orb-two" />
         </section>
 
+        {pageRoute.kind !== 'home' && (
+          <nav className="breadcrumbs" aria-label="パンくず">
+            <a href="/">ヨミピク</a>
+            <ChevronRight size={14} />
+            <span>
+              {pageRoute.kind === 'ranking'
+                ? `${pageRoute.type === 'novel' ? '小説' : '漫画'}人気ランキング`
+                : pageRoute.topic?.label}
+            </span>
+          </nav>
+        )}
+
         {hasSearched && (
           <section className="content-section search-results-section" id="search-results">
             <div className="section-top">
