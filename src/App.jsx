@@ -16,6 +16,7 @@ import {
   ExternalLink,
   LoaderCircle,
   Share2,
+  Trash2,
 } from 'lucide-react'
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
@@ -156,6 +157,7 @@ export default function App() {
   const [sharedSaves, setSharedSaves] = useState([])
   const [communityError, setCommunityError] = useState('')
   const [postingReview, setPostingReview] = useState(false)
+  const [deletingReviewId, setDeletingReviewId] = useState(null)
   const [savingId, setSavingId] = useState('')
   const [deviceId] = useState(() => getDeviceId())
   const [liveResults, setLiveResults] = useState([])
@@ -170,7 +172,7 @@ export default function App() {
   useEffect(() => {
     let active = true
 
-    fetch('/api/community')
+    fetch(`/api/community?deviceId=${encodeURIComponent(deviceId)}`)
       .then(async (response) => {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error || 'みんなの反応を取得できませんでした')
@@ -184,7 +186,7 @@ export default function App() {
       })
 
     return () => { active = false }
-  }, [])
+  }, [deviceId])
 
   useEffect(() => {
     let active = true
@@ -433,6 +435,37 @@ export default function App() {
       setCommunityError(error.message || (isSaved ? '「読みたい」を解除できませんでした' : '「読みたい」を保存できませんでした'))
     } finally {
       setSavingId('')
+    }
+  }
+
+  const deleteReview = async (review) => {
+    if (!review?.is_mine || deletingReviewId) return
+
+    const ok = window.confirm('この感想を削除しますか？')
+    if (!ok) return
+
+    setDeletingReviewId(review.id)
+    setCommunityError('')
+
+    try {
+      const response = await fetch('/api/community', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'delete-review',
+          deviceId,
+          reviewId: review.id,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '感想を削除できませんでした')
+
+      setSharedReviews((prev) => prev.filter((item) => item.id !== review.id))
+    } catch (error) {
+      setCommunityError(error.message || '感想を削除できませんでした')
+    } finally {
+      setDeletingReviewId(null)
     }
   }
 
@@ -779,6 +812,15 @@ export default function App() {
                   <div className="review-work"><Cover work={work} small /><div><small>{work.genre}</small><strong>{work.title}</strong></div></div>
                   <div className="review-score"><Stars score={review.rating} /> {review.mood && <span>{review.mood}</span>}</div>
                   <p>{review.body}</p>
+                  {review.is_mine && (
+                    <div className="own-review-actions">
+                      <span>自分の感想</span>
+                      <button onClick={() => deleteReview(review)} disabled={deletingReviewId === review.id}>
+                        {deletingReviewId === review.id ? <LoaderCircle size={14} className="spin" /> : <Trash2 size={14} />}
+                        {deletingReviewId === review.id ? '削除中' : '削除'}
+                      </button>
+                    </div>
+                  )}
                 </article>
               )
             }) : (
@@ -905,6 +947,15 @@ export default function App() {
                         </div>
                       </div>
                       <p>{review.body}</p>
+                      {review.is_mine && (
+                        <div className="own-review-actions">
+                          <span>自分の感想</span>
+                          <button onClick={() => deleteReview(review)} disabled={deletingReviewId === review.id}>
+                            {deletingReviewId === review.id ? <LoaderCircle size={14} className="spin" /> : <Trash2 size={14} />}
+                            {deletingReviewId === review.id ? '削除中' : '削除'}
+                          </button>
+                        </div>
+                      )}
                     </article>
                   ))}
                 </div>
