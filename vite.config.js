@@ -30,6 +30,14 @@ const seoPages = [
   { path: 'theme/novel/sf', title: 'SF小説おすすめ・人気作品｜ヨミピク', description: '宇宙、未来、科学をテーマにした国内外の人気SF小説・定番作品を紹介します。' },
   { path: 'theme/novel/horror', title: 'ホラー小説おすすめ・人気作品｜ヨミピク', description: '怪談、心理恐怖、異常な日常を描く人気ホラー小説・定番作品を紹介します。' },
   { path: 'theme/novel/historical', title: '歴史小説おすすめ・人気作品｜ヨミピク', description: '戦国・幕末など歴史の人物や時代を描いた人気の歴史小説・定番作品を紹介します。' },
+  { path: 'guide/manga/completed', title: '完結漫画おすすめ｜最後まで読める人気作品｜ヨミピク', description: '最後までまとめて読める、完結済みの定番漫画を中心に紹介。感想や「読みたい」数も見ながら選べます。' },
+  { path: 'guide/manga/binge', title: '一気読みしたい漫画おすすめ｜ヨミピク', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を中心に紹介します。' },
+  { path: 'guide/manga/college', title: '大学生におすすめの漫画｜ヨミピク', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を紹介します。' },
+  { path: 'guide/manga/short', title: '短く読める漫画おすすめ｜少ない巻数・短編作品｜ヨミピク', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を紹介します。' },
+  { path: 'guide/novel/bedtime', title: '寝る前に読みたい小説おすすめ｜ヨミピク', description: '寝る前の静かな時間に読みやすい、やさしい余韻や落ち着いた物語の小説を紹介します。' },
+  { path: 'guide/novel/binge', title: '一気読みしたい小説おすすめ｜ヨミピク', description: '展開が気になり、ページをめくる手が止まりにくい小説を中心に紹介します。' },
+  { path: 'guide/novel/college', title: '大学生におすすめの小説｜ヨミピク', description: '青春、将来、人間関係、自分らしさなど、大学生が共感しやすい小説を紹介します。' },
+  { path: 'guide/novel/short', title: '短く読める小説おすすめ｜短編・読みやすい作品｜ヨミピク', description: '短編集や比較的コンパクトな作品を中心に、すきま時間でも楽しみやすい小説を紹介します。' },
 ]
 
 function escapeHtml(value) {
