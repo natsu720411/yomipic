@@ -40,6 +40,17 @@ const discoveryTopics = [
   { slug: 'historical', label: '歴史小説', query: '歴史', type: 'novel', emoji: '🏯', description: '戦国・幕末など歴史の人物や時代を描いた定番小説を探せます。' },
 ]
 
+const intentGuides = [
+  { slug: 'completed', label: '完結漫画', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後までまとめて読める、完結済みの定番漫画を中心に選びました。' },
+  { slug: 'binge', label: '一気読みしたい漫画', query: '一気読み漫画', type: 'manga', emoji: '📚', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を集めました。' },
+  { slug: 'college', label: '大学生におすすめ漫画', query: '大学生漫画', type: 'manga', emoji: '🎓', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を選びました。' },
+  { slug: 'short', label: '短く読める漫画', query: '短編漫画', type: 'manga', emoji: '⏱️', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を集めました。' },
+  { slug: 'bedtime', label: '寝る前に読みたい小説', query: '寝る前小説', type: 'novel', emoji: '🌙', description: '寝る前の静かな時間に読みやすい、やさしい余韻や落ち着いた物語の小説を選びました。' },
+  { slug: 'binge', label: '一気読みしたい小説', query: '一気読み小説', type: 'novel', emoji: '⚡', description: '展開が気になり、ページをめくる手が止まりにくい小説を中心に集めました。' },
+  { slug: 'college', label: '大学生におすすめ小説', query: '大学生小説', type: 'novel', emoji: '🎒', description: '青春、将来、人間関係、自分らしさなど、大学生が共感しやすい小説を選びました。' },
+  { slug: 'short', label: '短く読める小説', query: '短編小説', type: 'novel', emoji: '☕', description: '短編集や比較的コンパクトな作品を中心に、すきま時間でも楽しみやすい小説を集めました。' },
+]
+
 function rankingHref(type) {
   return `/ranking/${type === 'novel' ? 'novel' : 'manga'}`
 }
@@ -48,9 +59,28 @@ function topicHref(topic) {
   return `/theme/${topic.type}/${topic.slug}`
 }
 
-function searchHref(query, type) {
+function guideHref(guide) {
+  return `/guide/${guide.type}/${guide.slug}`
+}
+
+function seriesHref(work) {
+  const title = seriesTitle(work?.seriesTitle || work?.title || '')
+  if (!title) return '#'
+  return `/series/${work?.type === 'novel' ? 'novel' : 'manga'}/${encodeURIComponent(title)}`
+}
+
+function landingForQuery(query, type) {
   const topic = discoveryTopics.find((item) => item.query === query && item.type === type)
-  if (topic) return topicHref(topic)
+  if (topic) return { kind: 'theme', item: topic }
+  const guide = intentGuides.find((item) => item.query === query && item.type === type)
+  if (guide) return { kind: 'guide', item: guide }
+  return null
+}
+
+function searchHref(query, type) {
+  const landing = landingForQuery(query, type)
+  if (landing?.kind === 'theme') return topicHref(landing.item)
+  if (landing?.kind === 'guide') return guideHref(landing.item)
 
   const params = new URLSearchParams({
     q: query,
@@ -60,8 +90,8 @@ function searchHref(query, type) {
 }
 
 function searchPageLabel(query, type) {
-  const topic = discoveryTopics.find((item) => item.query === query && item.type === type)
-  return topic?.label || `${query}${type === 'novel' ? '小説' : '漫画'}`
+  const landing = landingForQuery(query, type)
+  return landing?.item?.label || `${query}${type === 'novel' ? '小説' : '漫画'}`
 }
 
 function routeInfo() {
@@ -73,6 +103,21 @@ function routeInfo() {
   if (themeMatch) {
     const topic = discoveryTopics.find((item) => item.type === themeMatch[1] && item.slug === themeMatch[2])
     if (topic) return { kind: 'theme', type: topic.type, topic }
+  }
+
+  const guideMatch = path.match(/^\/guide\/(manga|novel)\/([a-z0-9-]+)$/)
+  if (guideMatch) {
+    const guide = intentGuides.find((item) => item.type === guideMatch[1] && item.slug === guideMatch[2])
+    if (guide) return { kind: 'guide', type: guide.type, guide }
+  }
+
+  const seriesMatch = path.match(/^\/series\/(manga|novel)\/(.+)$/)
+  if (seriesMatch) {
+    try {
+      return { kind: 'series', type: seriesMatch[1], title: decodeURIComponent(seriesMatch[2]) }
+    } catch {
+      return { kind: 'series', type: seriesMatch[1], title: seriesMatch[2] }
+    }
   }
 
   return { kind: 'home' }
@@ -118,17 +163,11 @@ function sourceBookId(work) {
 }
 
 function detailHref(work) {
-  const sourceId = sourceBookId(work)
-  if (!sourceId) return '#'
-  const params = new URLSearchParams({
-    book: sourceId,
-    type: work?.type === 'novel' ? 'novel' : 'manga',
-  })
-  return `/?${params.toString()}`
+  return seriesHref(work)
 }
 
 function buildDetailUrl(work) {
-  return new URL(detailHref(work), window.location.origin).toString()
+  return new URL(seriesHref(work), window.location.origin).toString()
 }
 
 function rowWork(row) {
