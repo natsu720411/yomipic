@@ -56,8 +56,9 @@ function normalize(item, type, seed, seedRank) {
     id: `google-${item.id}`,
     sourceId: item.id,
     type,
-    title: info.title || seed.title,
-    author: Array.isArray(info.authors) ? info.authors.join(' / ') : seed.author,
+    title: seed.title,
+    sourceTitle: info.title || seed.title,
+    author: seed.author || (Array.isArray(info.authors) ? info.authors.join(' / ') : ''),
     genre: Array.isArray(info.categories) && info.categories.length
       ? info.categories.slice(0, 2).join('・')
       : (type === 'manga' ? '漫画' : '小説'),
