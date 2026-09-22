@@ -762,23 +762,23 @@ export default function App() {
     }
   }
 
-  const searchBooks = async (event, forcedQuery, forcedType) => {
+  const searchBooks = async (event, forcedQuery, forcedType, options = {}) => {
     event?.preventDefault()
     const term = (forcedQuery ?? query).trim()
     if (!term) return
 
     const targetType = forcedType === 'novel' ? 'novel' : (forcedType === 'manga' ? 'manga' : type)
+    const topic = discoveryTopics.find((item) => item.query === term && item.type === targetType)
 
     if (forcedQuery !== undefined) setQuery(forcedQuery)
     if (forcedType) setType(targetType)
 
-    const url = new URL(window.location.href)
-    url.hash = ''
-    url.searchParams.delete('book')
-    url.searchParams.set('q', term)
-    url.searchParams.set('type', targetType)
-    window.history.replaceState({ yomipicSearch: true }, '', url)
+    if (!options.keepUrl) {
+      const href = topic ? topicHref(topic) : searchHref(term, targetType)
+      window.history.replaceState({ yomipicSearch: true }, '', href)
+    }
 
+    setPageRoute(topic ? { kind: 'theme', type: targetType, topic } : { kind: 'home' })
     setHasSearched(true)
     setLiveLoading(true)
     setLiveError('')
@@ -788,7 +788,9 @@ export default function App() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || '検索に失敗しました')
       setLiveResults(data.items || [])
-      setTimeout(() => document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
+      if (!options.noScroll) {
+        setTimeout(() => document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
+      }
     } catch (error) {
       setLiveResults([])
       setLiveError(error.message || '検索に失敗しました')
@@ -797,15 +799,50 @@ export default function App() {
     }
   }
 
+  const navigateRanking = (event, targetType) => {
+    event?.preventDefault()
+    const nextType = targetType === 'novel' ? 'novel' : 'manga'
+    setType(nextType)
+    setPageRoute({ kind: 'ranking', type: nextType })
+    setHasSearched(false)
+    setQuery('')
+    window.history.pushState({ yomipicRanking: true }, '', rankingHref(nextType))
+    setTimeout(() => document.getElementById('ranking')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
+  }
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('book')) return
+    const loadRoute = () => {
+      const route = routeInfo()
+      setPageRoute(route)
 
-    const initialQuery = String(params.get('q') || '').trim()
-    if (!initialQuery) return
+      if (route.kind === 'ranking') {
+        setType(route.type)
+        setHasSearched(false)
+        setQuery('')
+        return
+      }
 
-    const initialType = params.get('type') === 'novel' ? 'novel' : 'manga'
-    searchBooks(null, initialQuery, initialType)
+      if (route.kind === 'theme') {
+        searchBooks(null, route.topic.query, route.type, { keepUrl: true, noScroll: true })
+        return
+      }
+
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('book')) return
+
+      const initialQuery = String(params.get('q') || '').trim()
+      if (!initialQuery) {
+        setHasSearched(false)
+        return
+      }
+
+      const initialType = params.get('type') === 'novel' ? 'novel' : 'manga'
+      searchBooks(null, initialQuery, initialType, { keepUrl: true, noScroll: true })
+    }
+
+    loadRoute()
+    window.addEventListener('popstate', loadRoute)
+    return () => window.removeEventListener('popstate', loadRoute)
   }, [])
 
   return (
@@ -875,7 +912,9 @@ export default function App() {
                 <span className="section-kicker">BOOK DISCOVERY</span>
                 <h2>{searchPageLabel(query, type)}を探す</h2>
                 <p className="search-intro">
-                  {searchPageLabel(query, type)}の実在作品を検索しています。気になる作品は感想・評価や「読みたい」数を確認して、本棚に保存できます。
+                  {pageRoute.kind === 'theme' && pageRoute.topic
+                    ? pageRoute.topic.description
+                    : `${searchPageLabel(query, type)}の実在作品を検索しています。気になる作品は感想・評価や「読みたい」数を確認して、本棚に保存できます。`}
                 </p>
                 <small className="search-source-note">書籍情報はGoogle Booksのデータを利用しています。</small>
               </div>
@@ -964,8 +1003,8 @@ export default function App() {
             </div>
 
             <div className="type-switch" role="tablist" aria-label="作品タイプ">
-              <button className={type === 'manga' ? 'active' : ''} onClick={() => setType('manga')}>漫画</button>
-              <button className={type === 'novel' ? 'active' : ''} onClick={() => setType('novel')}>小説</button>
+              <a className={type === 'manga' ? 'active' : ''} href={rankingHref('manga')} onClick={(event) => navigateRanking(event, 'manga')}>漫画</a>
+              <a className={type === 'novel' ? 'active' : ''} href={rankingHref('novel')} onClick={(event) => navigateRanking(event, 'novel')}>小説</a>
             </div>
           </div>
 
