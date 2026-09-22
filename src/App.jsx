@@ -126,11 +126,11 @@ function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, onO
           <button
             className={`wishlist-button ${saved ? 'saved' : ''}`}
             onClick={() => onSave(work)}
-            disabled={saved || saving}
-            aria-label={saved ? '読みたい登録済み' : '読みたいに追加'}
+            disabled={saving}
+            aria-label={saved ? '読みたいを解除' : '読みたいに追加'}
           >
             {saving ? <LoaderCircle size={17} className="spin" /> : saved ? <BookmarkCheck size={17} /> : <Bookmark size={17} />}
-            <span>{saving ? '保存中' : saved ? '保存済み' : '読みたい'}</span>
+            <span>{saving ? '更新中' : saved ? '読みたい解除' : '読みたい'}</span>
           </button>
         </div>
       </div>
@@ -387,8 +387,8 @@ export default function App() {
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
 
-    const id = dbWorkId(work)
-    if (saved.has(id)) return
+    const id = work.dbId || dbWorkId(work)
+    const isSaved = saved.has(id)
 
     setSavingId(id)
     setCommunityError('')
@@ -398,7 +398,7 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          kind: 'save',
+          kind: isSaved ? 'unsave' : 'save',
           deviceId,
           work: {
             workId: id,
@@ -411,12 +411,26 @@ export default function App() {
       })
 
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || '「読みたい」を保存できませんでした')
+      if (!response.ok) throw new Error(data.error || (isSaved ? '「読みたい」を解除できませんでした' : '「読みたい」を保存できませんでした'))
 
-      setSaved((prev) => new Set([...prev, id]))
-      if (data.save) setSharedSaves((prev) => [data.save, ...prev])
+      if (isSaved) {
+        setSaved((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+
+        setSharedSaves((prev) => {
+          const index = prev.findIndex((row) => row.work_id === id)
+          if (index < 0) return prev
+          return [...prev.slice(0, index), ...prev.slice(index + 1)]
+        })
+      } else {
+        setSaved((prev) => new Set([...prev, id]))
+        if (data.save) setSharedSaves((prev) => [data.save, ...prev])
+      }
     } catch (error) {
-      setCommunityError(error.message || '「読みたい」を保存できませんでした')
+      setCommunityError(error.message || (isSaved ? '「読みたい」を解除できませんでした' : '「読みたい」を保存できませんでした'))
     } finally {
       setSavingId('')
     }
@@ -662,15 +676,15 @@ export default function App() {
                       <button
                         className={`wishlist-button compact ${saved.has(work.dbId || dbWorkId(work)) ? 'saved' : ''}`}
                         onClick={() => saveWork(work)}
-                        disabled={saved.has(work.dbId || dbWorkId(work)) || savingId === (work.dbId || dbWorkId(work))}
-                        aria-label={saved.has(work.dbId || dbWorkId(work)) ? '読みたい登録済み' : '読みたいに追加'}
+                        disabled={savingId === (work.dbId || dbWorkId(work))}
+                        aria-label={saved.has(work.dbId || dbWorkId(work)) ? '読みたいを解除' : '読みたいに追加'}
                       >
                         {savingId === (work.dbId || dbWorkId(work))
                           ? <LoaderCircle size={16} className="spin" />
                           : saved.has(work.dbId || dbWorkId(work))
                             ? <BookmarkCheck size={16} />
                             : <Bookmark size={16} />}
-                        <span>{saved.has(work.dbId || dbWorkId(work)) ? '保存済み' : '読みたい'}</span>
+                        <span>{saved.has(work.dbId || dbWorkId(work)) ? '読みたい解除' : '読みたい'}</span>
                       </button>
                     </div>
                   </div>
@@ -706,9 +720,15 @@ export default function App() {
                       <span><MessageCircle size={13} /> {work.reviews}</span>
                       <span><Bookmark size={13} /> {work.saves}</span>
                     </div>
-                    <button className="bookshelf-detail-button" onClick={() => openDetail(work)}>
-                      詳細を見る <ChevronRight size={15} />
-                    </button>
+                    <div className="bookshelf-actions">
+                      <button className="bookshelf-remove-button" onClick={() => saveWork(work)} disabled={savingId === work.dbId}>
+                        {savingId === work.dbId ? <LoaderCircle size={14} className="spin" /> : <BookmarkCheck size={14} />}
+                        本棚から外す
+                      </button>
+                      <button className="bookshelf-detail-button" onClick={() => openDetail(work)}>
+                        詳細を見る <ChevronRight size={15} />
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -836,14 +856,14 @@ export default function App() {
                   <button
                     className={`wishlist-button detail-wishlist ${saved.has(detailDbId) ? 'saved' : ''}`}
                     onClick={() => saveWork(detailWork)}
-                    disabled={saved.has(detailDbId) || savingId === detailDbId}
+                    disabled={savingId === detailDbId}
                   >
                     {savingId === detailDbId
                       ? <LoaderCircle size={17} className="spin" />
                       : saved.has(detailDbId)
                         ? <BookmarkCheck size={17} />
                         : <Bookmark size={17} />}
-                    <span>{saved.has(detailDbId) ? '読みたい登録済み' : '読みたい'}</span>
+                    <span>{saved.has(detailDbId) ? '読みたい解除' : '読みたい'}</span>
                   </button>
                   <button className="detail-share-button" onClick={shareDetail}>
                     <Share2 size={17} /> 共有
