@@ -152,7 +152,7 @@ function Cover({ work, small = false }) {
   if (work.image) {
     return (
       <div className={`cover cover-photo ${small ? 'cover-small' : ''}`}>
-        <img src={work.image} alt={`${work.title}の書影`} loading="lazy" />
+        <img src={work.image} alt={`${work.title}の書影`} loading="lazy" decoding="async" />
       </div>
     )
   }
@@ -1100,6 +1100,13 @@ export default function App() {
               <div className="search-status"><Search size={28} /><h3>作品が見つかりませんでした</h3><p>タイトルや作者名を変えて検索してみてください。</p></div>
             )}
 
+            {pageRoute.kind === 'theme' && pageRoute.topic && (
+              <div className="theme-explainer">
+                <h3>{pageRoute.topic.label}を探すときのポイント</h3>
+                <p>{pageRoute.topic.description} ヨミピクでは、作品名だけでなく感想や「読みたい」数も一緒に見られるので、次に読む候補を比較しやすくしています。</p>
+              </div>
+            )}
+
             <nav className="related-searches" aria-label="関連テーマ">
               <strong>ほかの{type === 'manga' ? '漫画' : '小説'}テーマも見る</strong>
               <div>
@@ -1217,6 +1224,33 @@ export default function App() {
             </div>
           )}
         </section>
+
+        {pageRoute.kind === 'ranking' && (
+          <section className="seo-guide-section" aria-labelledby="ranking-guide-title">
+            <span className="section-kicker">HOW TO READ</span>
+            <h2 id="ranking-guide-title">{type === 'novel' ? '小説' : '漫画'}ランキングの見方</h2>
+            <div className="seo-guide-grid">
+              <article>
+                <h3>作品タイトル単位で集計</h3>
+                <p>巻ごとに順位を分けず、同じシリーズへの「読みたい」と感想をまとめて集計しています。</p>
+              </article>
+              <article>
+                <h3>初期順位＋ヨミピク内の反応</h3>
+                <p>公開ランキングや販売動向を参考にした初期順位を土台に、ヨミピク内の反応が増えるほど順位が変化します。</p>
+              </article>
+              <article>
+                <h3>気になる作品は本棚へ</h3>
+                <p>「読みたい」を押すと、この端末の読みたい本棚からあとで見返せます。</p>
+              </article>
+            </div>
+            <div className="seo-guide-links">
+              <strong>テーマから探す</strong>
+              {discoveryTopics.filter((topic) => topic.type === type).map((topic) => (
+                <a key={`guide-${topic.type}-${topic.slug}`} href={topicHref(topic)}>{topic.emoji} {topic.label}</a>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="content-section bookshelf-section" id="bookshelf">
           <div className="section-top">
