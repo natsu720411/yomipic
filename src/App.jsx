@@ -42,6 +42,11 @@ function searchHref(query, type) {
   return `/?${params.toString()}`
 }
 
+function searchPageLabel(query, type) {
+  const topic = discoveryTopics.find((item) => item.query === query && item.type === type)
+  return topic?.label || `${query}${type === 'novel' ? '小説' : '漫画'}`
+}
+
 function getDeviceId() {
   const key = 'yomipic-device-id'
   let id = localStorage.getItem(key)
@@ -412,7 +417,7 @@ export default function App() {
   useEffect(() => {
     const homeTitle = 'ヨミピク｜漫画・小説の人気ランキング・感想・読みたい本棚'
     const homeDescription = 'ヨミピクは、漫画・小説を検索し、みんなの感想や評価、人気ランキングから次に読む一冊を探せる読書コミュニティ。気になる作品は「読みたい本棚」に保存できます。'
-    const searchLabel = query ? `${query}${type === 'manga' ? '漫画' : '小説'}` : ''
+    const searchLabel = query ? searchPageLabel(query, type) : ''
     const searchDescription = searchLabel
       ? `${searchLabel}を探すならヨミピク。実在する作品を検索し、みんなの感想・評価・「読みたい」数を見ながら次に読む一冊を見つけられます。`
       : homeDescription
@@ -726,13 +731,26 @@ export default function App() {
           <section className="content-section search-results-section" id="search-results">
             <div className="section-top">
               <div>
-                <span className="section-kicker">REAL BOOK SEARCH</span>
-                <h2>「{query}」の検索結果</h2>
-                <p>Google Booksの書籍データから検索しています。</p>
+                <span className="section-kicker">BOOK DISCOVERY</span>
+                <h2>{searchPageLabel(query, type)}を探す</h2>
+                <p className="search-intro">
+                  {searchPageLabel(query, type)}の実在作品を検索しています。気になる作品は感想・評価や「読みたい」数を確認して、本棚に保存できます。
+                </p>
+                <small className="search-source-note">書籍情報はGoogle Booksのデータを利用しています。</small>
               </div>
               <div className="type-switch" role="tablist" aria-label="検索する作品タイプ">
-                <button className={type === 'manga' ? 'active' : ''} onClick={() => setType('manga')}>漫画</button>
-                <button className={type === 'novel' ? 'active' : ''} onClick={() => setType('novel')}>小説</button>
+                <button
+                  className={type === 'manga' ? 'active' : ''}
+                  onClick={() => query ? searchBooks(null, query, 'manga') : setType('manga')}
+                >
+                  漫画
+                </button>
+                <button
+                  className={type === 'novel' ? 'active' : ''}
+                  onClick={() => query ? searchBooks(null, query, 'novel') : setType('novel')}
+                >
+                  小説
+                </button>
               </div>
             </div>
 
@@ -741,7 +759,7 @@ export default function App() {
             ) : liveError ? (
               <div className="search-status error-status">
                 <Search size={26} />
-                <h3>実作品検索を使う準備があと1つ必要です</h3>
+                <h3>作品を検索できませんでした</h3>
                 <p>{liveError}</p>
               </div>
             ) : liveResults.length ? (
@@ -766,6 +784,27 @@ export default function App() {
             ) : (
               <div className="search-status"><Search size={28} /><h3>作品が見つかりませんでした</h3><p>タイトルや作者名を変えて検索してみてください。</p></div>
             )}
+
+            <nav className="related-searches" aria-label="関連テーマ">
+              <strong>ほかの{type === 'manga' ? '漫画' : '小説'}テーマも見る</strong>
+              <div>
+                {discoveryTopics
+                  .filter((topic) => topic.type === type && topic.query !== query)
+                  .slice(0, 4)
+                  .map((topic) => (
+                    <a
+                      key={`related-${topic.type}-${topic.query}`}
+                      href={searchHref(topic.query, topic.type)}
+                      onClick={(event) => {
+                        event.preventDefault()
+                        searchBooks(null, topic.query, topic.type)
+                      }}
+                    >
+                      {topic.emoji} {topic.label}
+                    </a>
+                  ))}
+              </div>
+            </nav>
           </section>
         )}
 
