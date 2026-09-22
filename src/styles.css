@@ -854,3 +854,35 @@ footer small { font-size: 10px; }
     min-height: 138px;
   }
 }
+
+
+.bookshelf-actions {
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bookshelf-remove-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #8a6273;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+}
+.bookshelf-remove-button:hover:not(:disabled) {
+  color: #b4235a;
+}
+.bookshelf-remove-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+.bookshelf-actions .bookshelf-detail-button {
+  margin-top: 0;
+  padding-top: 0;
+}
