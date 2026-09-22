@@ -3,6 +3,10 @@
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
+    },
+    {
+      "source": "/series/:type/:title",
+      "destination": "/"
     }
   ]
 }
