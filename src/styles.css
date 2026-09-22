@@ -941,3 +941,59 @@ footer small { font-size: 10px; }
 .bookshelf-title-link:hover {
   color: var(--purple);
 }
+
+
+.search-intro {
+  max-width: 720px;
+}
+.search-source-note {
+  display: block;
+  margin-top: 5px;
+  color: #9a93a2;
+  font-size: 10px;
+}
+.related-searches {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #faf8fd;
+}
+.related-searches > strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #5e5669;
+  font-size: 11px;
+}
+.related-searches > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.related-searches a {
+  padding: 8px 10px;
+  border: 1px solid #ddd4e8;
+  border-radius: 999px;
+  background: white;
+  color: #675f70;
+  font-size: 10px;
+  font-weight: 800;
+}
+.related-searches a:hover {
+  color: var(--purple);
+  border-color: #c7b3e8;
+  background: #f7f1ff;
+}
+@media (max-width: 620px) {
+  .related-searches {
+    margin-top: 20px;
+    padding: 14px;
+  }
+  .related-searches > div {
+    gap: 6px;
+  }
+  .related-searches a {
+    font-size: 9px;
+    padding: 7px 9px;
+  }
+}
