@@ -886,3 +886,37 @@ footer small { font-size: 10px; }
   margin-top: 0;
   padding-top: 0;
 }
+
+
+.own-review-actions {
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid #f0edf4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.own-review-actions > span {
+  color: #8b8395;
+  font-size: 10px;
+  font-weight: 800;
+}
+.own-review-actions > button {
+  border: 0;
+  background: transparent;
+  color: #a2485f;
+  padding: 4px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 900;
+}
+.own-review-actions > button:hover:not(:disabled) {
+  color: #c62855;
+}
+.own-review-actions > button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
