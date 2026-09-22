@@ -17,17 +17,6 @@ import {
   LoaderCircle,
 } from 'lucide-react'
 
-const seedWorks = [
-  { id: 1, type: 'manga', title: '放課後、君と青い空', author: '水野ひかり', genre: '青春・恋愛', score: 4.7, reviews: 128, saves: 942, rank: 1, trend: 18, accent: 'linear-gradient(145deg,#7c3aed,#ec4899)', tagline: '夕焼けの教室から始まる、少し不器用な青春。', demo: true },
-  { id: 2, type: 'manga', title: '境界線のランナー', author: '高瀬ユウ', genre: 'スポーツ', score: 4.6, reviews: 94, saves: 721, rank: 2, trend: 31, accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)', tagline: '負けたくない理由を、走りながら見つけていく。', demo: true },
-  { id: 3, type: 'manga', title: '深夜0時の図書室', author: '佐倉まお', genre: 'ミステリー', score: 4.5, reviews: 83, saves: 665, rank: 3, trend: 47, accent: 'linear-gradient(145deg,#312e81,#6366f1)', tagline: '閉館後だけ開く、不思議な図書室の秘密。', demo: true },
-  { id: 4, type: 'manga', title: 'となりの魔法使い', author: '南しずく', genre: 'ファンタジー', score: 4.4, reviews: 61, saves: 508, rank: 4, trend: 12, accent: 'linear-gradient(145deg,#059669,#84cc16)', tagline: '普通の大学生活に、魔法がひとつ混ざったら。', demo: true },
-  { id: 5, type: 'novel', title: '君が忘れた夏の名前', author: '朝倉 澪', genre: '青春小説', score: 4.8, reviews: 156, saves: 1102, rank: 1, trend: 26, accent: 'linear-gradient(145deg,#0284c7,#f59e0b)', tagline: '思い出せない約束を追う、ひと夏の物語。', demo: true },
-  { id: 6, type: 'novel', title: '透明な夜に手紙を書く', author: '白石 遥', genre: '恋愛小説', score: 4.7, reviews: 131, saves: 980, rank: 2, trend: 39, accent: 'linear-gradient(145deg,#4338ca,#a855f7)', tagline: '届かないはずの手紙から始まる静かな恋。', demo: true },
-  { id: 7, type: 'novel', title: '珈琲店ノクターンの事件簿', author: '久遠 理人', genre: 'ミステリー', score: 4.5, reviews: 77, saves: 604, rank: 3, trend: 52, accent: 'linear-gradient(145deg,#78350f,#d97706)', tagline: '一杯の珈琲と、小さな謎を解く夜。', demo: true },
-  { id: 8, type: 'novel', title: '星降る駅で待っている', author: '伊月かなえ', genre: 'ファンタジー', score: 4.4, reviews: 69, saves: 577, rank: 4, trend: 21, accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)', tagline: '終電のあとにだけ現れる駅をめぐる物語。', demo: true },
-]
-
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
 
 function getDeviceId() {
@@ -71,7 +60,7 @@ function Cover({ work, small = false }) {
   }
 
   return (
-    <div className={`cover ${small ? 'cover-small' : ''}`} style={{ background: work.accent }}>
+    <div className={`cover ${small ? 'cover-small' : ''}`} style={{ background: work.accent || 'linear-gradient(145deg,#7c3aed,#ec4899)' }}>
       <div className="cover-mark">Y</div>
       <div className="cover-copy">
         <span>{work.type === 'manga' ? 'COMIC' : 'NOVEL'}</span>
@@ -222,20 +211,12 @@ export default function App() {
 
   const works = useMemo(() => {
     const real = communityWorks.filter((work) => work.type === type)
-
-    if (real.length) {
-      if (sort === 'rising') return [...real].sort((a, b) => (b.recent || 0) - (a.recent || 0) || b.popularity - a.popularity)
-      if (sort === 'rated') return [...real].sort((a, b) => b.score - a.score || b.reviews - a.reviews)
-      return [...real].sort((a, b) => b.popularity - a.popularity)
-    }
-
-    let list = seedWorks.filter((work) => work.type === type)
-    if (sort === 'rising') return [...list].sort((a, b) => b.trend - a.trend)
-    if (sort === 'rated') return [...list].sort((a, b) => b.score - a.score)
-    return [...list].sort((a, b) => a.rank - b.rank)
+    if (sort === 'rising') return [...real].sort((a, b) => (b.recent || 0) - (a.recent || 0) || b.popularity - a.popularity)
+    if (sort === 'rated') return [...real].sort((a, b) => b.score - a.score || b.reviews - a.reviews)
+    return [...real].sort((a, b) => b.popularity - a.popularity)
   }, [communityWorks, type, sort])
 
-  const rankingIsDemo = !communityWorks.some((work) => work.type === type)
+  const rankingIsEmpty = works.length === 0
 
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
@@ -458,7 +439,7 @@ export default function App() {
             <div>
               <span className="section-kicker">RANKING</span>
               <h2>ヨミピク人気ランキング</h2>
-              <p>{rankingIsDemo ? 'まだこのジャンルの共有データがないためサンプルを表示しています。実作品に反応が集まると自動で切り替わります。' : 'みんなの「読みたい」と感想をもとにしたヨミピク独自ランキングです。'}</p>
+              <p>{rankingIsEmpty ? 'まだこのジャンルのランキングデータがありません。最初の「読みたい」や感想を投稿するとランキングが始まります。' : 'みんなの「読みたい」と感想をもとにしたヨミピク独自ランキングです。'}</p>
             </div>
 
             <div className="type-switch" role="tablist" aria-label="作品タイプ">
@@ -479,25 +460,31 @@ export default function App() {
             </button>
           </div>
 
-          <div className="ranking-grid">
-            {works.map((work, index) => (
-              <article className="work-card" key={work.id}>
-                <div className={`rank-badge rank-${index + 1}`}>
-                  {index < 3 ? <Trophy size={13} /> : null}
-                  {index + 1}
-                </div>
-                <Cover work={work} />
-                <div className="work-body">
-                  <div className="work-meta">{work.genre}</div>
-                  <h3>{work.title}</h3>
-                  <p className="author">{work.author}</p>
-                  <p className="tagline">{work.tagline}</p>
-                  <div className="metrics">
-                    <Stars score={work.score} />
-                    <span><MessageCircle size={14} /> {work.reviews || 0}</span>
-                    <span><Bookmark size={14} /> {work.saves || 0}</span>
+          {rankingIsEmpty ? (
+            <div className="search-status">
+              <Trophy size={28} />
+              <h3>まだランキングがありません</h3>
+              <p>実在作品を検索して「読みたい」または感想を投稿すると、このランキングに反映されます。</p>
+            </div>
+          ) : (
+            <div className="ranking-grid">
+              {works.map((work, index) => (
+                <article className="work-card" key={work.dbId || work.id}>
+                  <div className={`rank-badge rank-${index + 1}`}>
+                    {index < 3 ? <Trophy size={13} /> : null}
+                    {index + 1}
                   </div>
-                  {!rankingIsDemo && (
+                  <Cover work={work} />
+                  <div className="work-body">
+                    <div className="work-meta">{work.genre}</div>
+                    <h3>{work.title}</h3>
+                    <p className="author">{work.author}</p>
+                    <p className="tagline">{work.tagline}</p>
+                    <div className="metrics">
+                      <Stars score={work.score} />
+                      <span><MessageCircle size={14} /> {work.reviews || 0}</span>
+                      <span><Bookmark size={14} /> {work.saves || 0}</span>
+                    </div>
                     <div className="card-actions">
                       <button className="ghost-button" onClick={() => openReview(work)}>
                         <PenLine size={16} /> 感想
@@ -516,11 +503,11 @@ export default function App() {
                         <span>{saved.has(work.dbId || dbWorkId(work)) ? '保存済み' : '読みたい'}</span>
                       </button>
                     </div>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="discover-section" id="discover">
