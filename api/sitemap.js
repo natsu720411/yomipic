@@ -31,19 +31,23 @@ function xmlEscape(value) {
     .replaceAll("'", '&apos;')
 }
 
-function detailUrl(workId) {
-  const [type, rawId] = String(workId || '').split('::')
-  if (!rawId?.startsWith('google-')) return null
+function seriesTitle(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .trim()
+    .replace(/\s*(?:モノクロ版|カラー版|デジタル版|電子版|分冊版|新装版|完全版)\s*$/iu, '')
+    .replace(/\s*(?:第?\s*[0-9]+\s*巻|vol\.?\s*[0-9]+|volume\s*[0-9]+|[（(]\s*[0-9]+\s*[）)]|\s[0-9]{1,3})\s*$/iu, '')
+    .replace(/\s*(?:モノクロ版|カラー版|デジタル版|電子版|分冊版|新装版|完全版)\s*$/iu, '')
+    .trim()
+}
 
-  const book = rawId.slice(7)
-  if (!book) return null
+function detailUrl(row) {
+  const [rawType] = String(row?.work_id || '').split('::')
+  const type = rawType === 'novel' ? 'novel' : 'manga'
+  const title = seriesTitle(row?.title)
+  if (!title) return null
 
-  const params = new URLSearchParams({
-    book,
-    type: type === 'novel' ? 'novel' : 'manga',
-  })
-
-  return `https://yomipic.vercel.app/?${params.toString()}`
+  return `https://yomipic.vercel.app/series/${type}/${encodeURIComponent(title)}`
 }
 
 const landingPages = [
@@ -65,6 +69,14 @@ const landingPages = [
   '/theme/novel/sf',
   '/theme/novel/horror',
   '/theme/novel/historical',
+  '/guide/manga/completed',
+  '/guide/manga/binge',
+  '/guide/manga/college',
+  '/guide/manga/short',
+  '/guide/novel/bedtime',
+  '/guide/novel/binge',
+  '/guide/novel/college',
+  '/guide/novel/short',
 ]
 
 function landingUrl(path) {
@@ -89,14 +101,14 @@ export default async function handler(req, res) {
 
   try {
     const [reviews, saves] = await Promise.all([
-      supabaseFetch('/rest/v1/reviews?select=work_id,created_at&order=created_at.desc&limit=1000'),
-      supabaseFetch('/rest/v1/saves?select=work_id,created_at&order=created_at.desc&limit=5000'),
+      supabaseFetch('/rest/v1/reviews?select=work_id,title,created_at&order=created_at.desc&limit=1000'),
+      supabaseFetch('/rest/v1/saves?select=work_id,title,created_at&order=created_at.desc&limit=5000'),
     ])
 
     const detailPages = new Map()
 
     for (const row of [...(reviews || []), ...(saves || [])]) {
-      const url = detailUrl(row.work_id)
+      const url = detailUrl(row)
       if (!url) continue
 
       const previous = detailPages.get(url)
