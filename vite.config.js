@@ -114,6 +114,20 @@ function staticSeoPages() {
           }).replaceAll('<', '\\u003c')}</script>\n  </head>`
         )
 
+        const fallbackTitle = page.title.replace(/｜ヨミピク$/, '')
+        const fallback = `
+          <main style="max-width:900px;margin:0 auto;padding:64px 24px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#211b2a">
+            <p style="margin:0 0 10px;color:#7c3aed;font-weight:800;font-size:13px">ヨミピク</p>
+            <h1 style="margin:0 0 18px;font-size:clamp(32px,6vw,54px);line-height:1.2">${escapeHtml(fallbackTitle)}</h1>
+            <p style="margin:0;max-width:760px;color:#6f6878;line-height:1.9;font-size:15px">${escapeHtml(page.description)}</p>
+            <nav style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+              <a href="/" style="color:#7c3aed;font-weight:700">ヨミピクトップ</a>
+              <a href="/ranking/manga" style="color:#7c3aed;font-weight:700">漫画ランキング</a>
+              <a href="/ranking/novel" style="color:#7c3aed;font-weight:700">小説ランキング</a>
+            </nav>
+          </main>`
+        html = html.replace('<div id="root"></div>', `<div id="root">${fallback}</div>`)
+
         const outputDir = path.join(dist, page.path)
         fs.mkdirSync(outputDir, { recursive: true })
         fs.writeFileSync(path.join(outputDir, 'index.html'), html)
