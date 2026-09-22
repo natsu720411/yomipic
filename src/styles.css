@@ -257,3 +257,22 @@ footer small { font-size: 10px; }
   .work-body h3 { font-size: 13px; }
   .metrics { font-size: 10px; }
 }
+
+
+.community-note {
+  margin: -8px 0 18px;
+  padding: 11px 13px;
+  border: 1px solid #f0d7a4;
+  border-radius: 11px;
+  background: #fffaf0;
+  color: #72551d;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.review-empty {
+  grid-column: 1 / -1;
+}
+.form-bottom button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
