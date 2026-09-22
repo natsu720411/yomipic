@@ -1,7 +1,15 @@
 function env() {
-  const url = String(process.env.VITE_SUPABASE_URL || '').trim()
+  const rawUrl = String(process.env.VITE_SUPABASE_URL || '').trim()
   const key = String(process.env.VITE_SUPABASE_ANON_KEY || '').trim()
-  if (!url || !key) throw new Error('Supabase environment variables are missing')
+  if (!rawUrl || !key) throw new Error('Supabase environment variables are missing')
+
+  let url
+  try {
+    url = new URL(rawUrl).origin
+  } catch {
+    throw new Error('VITE_SUPABASE_URL is not a valid URL')
+  }
+
   return { url, key }
 }
 
