@@ -1130,3 +1130,71 @@ footer small { font-size: 10px; }
     grid-template-columns: 1fr;
   }
 }
+
+
+.intent-section {
+  padding-top: 54px;
+}
+.intent-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+}
+.intent-guide-grid > a {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 13px;
+  align-items: center;
+  box-shadow: 0 10px 28px rgba(41,29,58,.04);
+}
+.intent-guide-grid > a:hover {
+  border-color: #cdbbea;
+  box-shadow: 0 14px 34px rgba(83,55,122,.08);
+  transform: translateY(-1px);
+}
+.intent-guide-emoji {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #f6f1ff;
+  font-size: 20px;
+}
+.intent-guide-grid small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--purple);
+  font-size: 9px;
+  font-weight: 900;
+}
+.intent-guide-grid strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+}
+.intent-guide-grid p {
+  margin: 5px 0 0;
+  color: #80788a;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.intent-guide-grid svg {
+  color: #9b91a7;
+}
+@media (max-width: 700px) {
+  .intent-section {
+    padding-top: 42px;
+  }
+  .intent-guide-grid {
+    grid-template-columns: 1fr;
+  }
+  .intent-guide-grid > a {
+    padding: 15px;
+  }
+}
