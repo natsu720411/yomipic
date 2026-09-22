@@ -30,6 +30,32 @@ const seedWorks = [
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
 
+function getDeviceId() {
+  const key = 'yomipic-device-id'
+  let id = localStorage.getItem(key)
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    localStorage.setItem(key, id)
+  }
+  return id
+}
+
+function dbWorkId(work) {
+  return `${work.type || 'book'}::${work.id}`
+}
+
+function reviewWork(review) {
+  const [type = 'book', id = review.work_id] = String(review.work_id || '').split('::')
+  return {
+    id,
+    type,
+    title: review.title,
+    author: review.author || '',
+    genre: review.genre || (type === 'manga' ? '漫画' : '小説'),
+    image: review.image_url || '',
+  }
+}
+
 function Cover({ work, small = false }) {
   if (work.image) {
     return (
@@ -106,9 +132,10 @@ export default function App() {
   const [rating, setRating] = useState(5)
   const [mood, setMood] = useState('')
   const [reviewText, setReviewText] = useState('')
-  const [postedReviews, setPostedReviews] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('yomipic-reviews') || '[]') } catch { return [] }
-  })
+  const [sharedReviews, setSharedReviews] = useState([])
+  const [communityError, setCommunityError] = useState('')
+  const [postingReview, setPostingReview] = useState(false)
+  const [deviceId] = useState(() => getDeviceId())
   const [liveResults, setLiveResults] = useState([])
   const [liveLoading, setLiveLoading] = useState(false)
   const [liveError, setLiveError] = useState('')
@@ -119,8 +146,20 @@ export default function App() {
   }, [saved])
 
   useEffect(() => {
-    localStorage.setItem('yomipic-reviews', JSON.stringify(postedReviews))
-  }, [postedReviews])
+    let active = true
+
+    fetch('/api/community?kind=reviews')
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || '感想を取得できませんでした')
+        if (active) setSharedReviews(data.reviews || [])
+      })
+      .catch((error) => {
+        if (active) setCommunityError(error.message || '感想を取得できませんでした')
+      })
+
+    return () => { active = false }
+  }, [])
 
   const works = useMemo(() => {
     let list = seedWorks.filter((work) => work.type === type)
@@ -145,23 +184,44 @@ export default function App() {
     setReviewText('')
   }
 
-  const submitReview = (event) => {
+  const submitReview = async (event) => {
     event.preventDefault()
-    if (!selected || !reviewText.trim()) return
-    setPostedReviews((prev) => [
-      {
-        id: Date.now(),
-        workId: selected.id,
-        work: selected,
-        rating,
-        mood,
-        text: reviewText.trim(),
-        createdAt: new Date().toISOString(),
-      },
-      ...prev,
-    ])
-    setReviewOpen(false)
-    setReviewText('')
+    if (!selected || !reviewText.trim() || postingReview) return
+
+    setPostingReview(true)
+    setCommunityError('')
+
+    try {
+      const response = await fetch('/api/community', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'review',
+          deviceId,
+          work: {
+            workId: dbWorkId(selected),
+            title: selected.title,
+            author: selected.author || '',
+            imageUrl: selected.image || '',
+            genre: selected.genre || '',
+          },
+          rating,
+          mood,
+          text: reviewText.trim(),
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '感想を投稿できませんでした')
+
+      if (data.review) setSharedReviews((prev) => [data.review, ...prev])
+      setReviewOpen(false)
+      setReviewText('')
+    } catch (error) {
+      setCommunityError(error.message || '感想を投稿できませんでした')
+    } finally {
+      setPostingReview(false)
+    }
   }
 
   const searchBooks = async (event, forcedQuery) => {
@@ -202,7 +262,13 @@ export default function App() {
           <a href="#discover">作品を探す</a>
         </nav>
 
-        <button className="header-action" onClick={() => openReview(works[0] || seedWorks[0])}>
+        <button className="header-action" onClick={() => {
+          if (liveResults[0]) openReview(liveResults[0])
+          else {
+            document.getElementById('book-search')?.focus()
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }
+        }}>
           <PenLine size={17} />
           感想を書く
         </button>
@@ -218,6 +284,7 @@ export default function App() {
             <form className="search-box" onSubmit={searchBooks}>
               <Search size={21} />
               <input
+                id="book-search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="実在する作品名・作者名から探す"
@@ -315,7 +382,7 @@ export default function App() {
                   <p className="tagline">{work.tagline}</p>
                   <div className="metrics">
                     <Stars score={work.score} />
-                    <span><MessageCircle size={14} /> {work.reviews + postedReviews.filter((r) => r.workId === work.id).length}</span>
+                    <span><MessageCircle size={14} /> {work.reviews}</span>
                     <span><Bookmark size={14} /> {work.saves + (saved.has(work.id) ? 1 : 0)}</span>
                   </div>
                   <div className="card-actions">
@@ -359,33 +426,27 @@ export default function App() {
             </div>
           </div>
 
+          {communityError && (
+            <div className="community-note">{communityError}</div>
+          )}
+
           <div className="review-feed">
-            {postedReviews.length > 0 ? postedReviews.slice(0, 6).map((review) => {
-              const work = review.work || seedWorks.find((item) => item.id === review.workId)
-              if (!work) return null
+            {sharedReviews.length > 0 ? sharedReviews.slice(0, 8).map((review) => {
+              const work = reviewWork(review)
               return (
                 <article className="review-card" key={review.id}>
-                  <div className="review-user"><span>Y</span><div><strong>あなた</strong><small>投稿済み</small></div></div>
+                  <div className="review-user"><span>Y</span><div><strong>ヨミピク読者</strong><small>{new Date(review.created_at).toLocaleDateString('ja-JP')}</small></div></div>
                   <div className="review-work"><Cover work={work} small /><div><small>{work.genre}</small><strong>{work.title}</strong></div></div>
                   <div className="review-score"><Stars score={review.rating} /> {review.mood && <span>{review.mood}</span>}</div>
-                  <p>{review.text}</p>
+                  <p>{review.body}</p>
                 </article>
               )
             }) : (
-              <>
-                <article className="review-card">
-                  <div className="review-user"><span>M</span><div><strong>mio</strong><small>サンプル</small></div></div>
-                  <div className="review-work"><Cover work={seedWorks[0]} small /><div><small>{seedWorks[0].genre}</small><strong>{seedWorks[0].title}</strong></div></div>
-                  <div className="review-score"><Stars score={5} /><span>💕 キュン</span></div>
-                  <p>会話のテンポが好き。放課後の空気感がすごくリアルで、一気に読んだ。</p>
-                </article>
-                <article className="review-card">
-                  <div className="review-user"><span>K</span><div><strong>kei</strong><small>サンプル</small></div></div>
-                  <div className="review-work"><Cover work={seedWorks[6]} small /><div><small>{seedWorks[6].genre}</small><strong>{seedWorks[6].title}</strong></div></div>
-                  <div className="review-score"><Stars score={4} /><span>🤯 衝撃</span></div>
-                  <p>短い章ごとに謎がほどけていく感じが気持ちいい。寝る前に少しずつ読むのにも良さそう。</p>
-                </article>
-              </>
+              <div className="search-status review-empty">
+                <MessageCircle size={28} />
+                <h3>まだ感想がありません</h3>
+                <p>実在する作品を検索して「感想」を押すと、ここにみんなの感想として表示されます。</p>
+              </div>
             )}
           </div>
         </section>
@@ -442,7 +503,7 @@ export default function App() {
                 maxLength={240}
                 required
               />
-              <div className="form-bottom"><span>{reviewText.length}/240</span><button type="submit">感想を投稿する</button></div>
+              <div className="form-bottom"><span>{reviewText.length}/240</span><button type="submit" disabled={postingReview}>{postingReview ? '投稿中…' : 'みんなに投稿する'}</button></div>
             </form>
           </div>
         </div>
