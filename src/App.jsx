@@ -15,20 +15,59 @@ import {
   Trophy,
   ExternalLink,
   LoaderCircle,
+  Users,
 } from 'lucide-react'
+import { supabase, supabaseReady } from './supabase'
 
 const seedWorks = [
-  { id: 1, type: 'manga', title: '放課後、君と青い空', author: '水野ひかり', genre: '青春・恋愛', score: 4.7, reviews: 128, saves: 942, rank: 1, trend: 18, accent: 'linear-gradient(145deg,#7c3aed,#ec4899)', tagline: '夕焼けの教室から始まる、少し不器用な青春。' },
-  { id: 2, type: 'manga', title: '境界線のランナー', author: '高瀬ユウ', genre: 'スポーツ', score: 4.6, reviews: 94, saves: 721, rank: 2, trend: 31, accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)', tagline: '負けたくない理由を、走りながら見つけていく。' },
-  { id: 3, type: 'manga', title: '深夜0時の図書室', author: '佐倉まお', genre: 'ミステリー', score: 4.5, reviews: 83, saves: 665, rank: 3, trend: 47, accent: 'linear-gradient(145deg,#312e81,#6366f1)', tagline: '閉館後だけ開く、不思議な図書室の秘密。' },
-  { id: 4, type: 'manga', title: 'となりの魔法使い', author: '南しずく', genre: 'ファンタジー', score: 4.4, reviews: 61, saves: 508, rank: 4, trend: 12, accent: 'linear-gradient(145deg,#059669,#84cc16)', tagline: '普通の大学生活に、魔法がひとつ混ざったら。' },
-  { id: 5, type: 'novel', title: '君が忘れた夏の名前', author: '朝倉 澪', genre: '青春小説', score: 4.8, reviews: 156, saves: 1102, rank: 1, trend: 26, accent: 'linear-gradient(145deg,#0284c7,#f59e0b)', tagline: '思い出せない約束を追う、ひと夏の物語。' },
-  { id: 6, type: 'novel', title: '透明な夜に手紙を書く', author: '白石 遥', genre: '恋愛小説', score: 4.7, reviews: 131, saves: 980, rank: 2, trend: 39, accent: 'linear-gradient(145deg,#4338ca,#a855f7)', tagline: '届かないはずの手紙から始まる静かな恋。' },
-  { id: 7, type: 'novel', title: '珈琲店ノクターンの事件簿', author: '久遠 理人', genre: 'ミステリー', score: 4.5, reviews: 77, saves: 604, rank: 3, trend: 52, accent: 'linear-gradient(145deg,#78350f,#d97706)', tagline: '一杯の珈琲と、小さな謎を解く夜。' },
-  { id: 8, type: 'novel', title: '星降る駅で待っている', author: '伊月かなえ', genre: 'ファンタジー', score: 4.4, reviews: 69, saves: 577, rank: 4, trend: 21, accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)', tagline: '終電のあとにだけ現れる駅をめぐる物語。' },
+  { id: 'demo-1', type: 'manga', title: '放課後、君と青い空', author: '水野ひかり', genre: '青春・恋愛', score: 4.7, reviews: 128, saves: 942, rank: 1, trend: 18, accent: 'linear-gradient(145deg,#7c3aed,#ec4899)', tagline: '夕焼けの教室から始まる、少し不器用な青春。', demo: true },
+  { id: 'demo-2', type: 'manga', title: '境界線のランナー', author: '高瀬ユウ', genre: 'スポーツ', score: 4.6, reviews: 94, saves: 721, rank: 2, trend: 31, accent: 'linear-gradient(145deg,#0ea5e9,#14b8a6)', tagline: '負けたくない理由を、走りながら見つけていく。', demo: true },
+  { id: 'demo-3', type: 'manga', title: '深夜0時の図書室', author: '佐倉まお', genre: 'ミステリー', score: 4.5, reviews: 83, saves: 665, rank: 3, trend: 47, accent: 'linear-gradient(145deg,#312e81,#6366f1)', tagline: '閉館後だけ開く、不思議な図書室の秘密。', demo: true },
+  { id: 'demo-4', type: 'manga', title: 'となりの魔法使い', author: '南しずく', genre: 'ファンタジー', score: 4.4, reviews: 61, saves: 508, rank: 4, trend: 12, accent: 'linear-gradient(145deg,#059669,#84cc16)', tagline: '普通の大学生活に、魔法がひとつ混ざったら。', demo: true },
+  { id: 'demo-5', type: 'novel', title: '君が忘れた夏の名前', author: '朝倉 澪', genre: '青春小説', score: 4.8, reviews: 156, saves: 1102, rank: 1, trend: 26, accent: 'linear-gradient(145deg,#0284c7,#f59e0b)', tagline: '思い出せない約束を追う、ひと夏の物語。', demo: true },
+  { id: 'demo-6', type: 'novel', title: '透明な夜に手紙を書く', author: '白石 遥', genre: '恋愛小説', score: 4.7, reviews: 131, saves: 980, rank: 2, trend: 39, accent: 'linear-gradient(145deg,#4338ca,#a855f7)', tagline: '届かないはずの手紙から始まる静かな恋。', demo: true },
+  { id: 'demo-7', type: 'novel', title: '珈琲店ノクターンの事件簿', author: '久遠 理人', genre: 'ミステリー', score: 4.5, reviews: 77, saves: 604, rank: 3, trend: 52, accent: 'linear-gradient(145deg,#78350f,#d97706)', tagline: '一杯の珈琲と、小さな謎を解く夜。', demo: true },
+  { id: 'demo-8', type: 'novel', title: '星降る駅で待っている', author: '伊月かなえ', genre: 'ファンタジー', score: 4.4, reviews: 69, saves: 577, rank: 4, trend: 21, accent: 'linear-gradient(145deg,#1e3a8a,#8b5cf6)', tagline: '終電のあとにだけ現れる駅をめぐる物語。', demo: true },
 ]
 
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
+
+function getDeviceId() {
+  const key = 'yomipic-device-id'
+  let id = localStorage.getItem(key)
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    localStorage.setItem(key, id)
+  }
+  return id
+}
+
+function toDbWorkId(work) {
+  return `${work.type || 'book'}::${work.id}`
+}
+
+function splitDbWorkId(value = '') {
+  const index = value.indexOf('::')
+  if (index === -1) return { type: 'book', id: value }
+  return { type: value.slice(0, index), id: value.slice(index + 2) }
+}
+
+function workFromRow(row) {
+  const parsed = splitDbWorkId(row.work_id)
+  return {
+    id: parsed.id,
+    dbId: row.work_id,
+    type: parsed.type,
+    title: row.title,
+    author: row.author || '',
+    genre: row.genre || (parsed.type === 'manga' ? '漫画' : '小説'),
+    image: row.image_url || '',
+    score: 0,
+    reviews: 0,
+    saves: 0,
+    tagline: 'ヨミピクで読者から反応が集まっている作品です。',
+  }
+}
 
 function Cover({ work, small = false }) {
   if (work.image) {
@@ -40,7 +79,7 @@ function Cover({ work, small = false }) {
   }
 
   return (
-    <div className={`cover ${small ? 'cover-small' : ''}`} style={{ background: work.accent }}>
+    <div className={`cover ${small ? 'cover-small' : ''}`} style={{ background: work.accent || 'linear-gradient(145deg,#7c3aed,#ec4899)' }}>
       <div className="cover-mark">Y</div>
       <div className="cover-copy">
         <span>{work.type === 'manga' ? 'COMIC' : 'NOVEL'}</span>
@@ -60,7 +99,7 @@ function Stars({ score }) {
   )
 }
 
-function ResultCard({ work, saved, onSave, onReview }) {
+function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, saving }) {
   return (
     <article className="work-card real-work-card">
       <Cover work={work} />
@@ -70,7 +109,8 @@ function ResultCard({ work, saved, onSave, onReview }) {
         <p className="author">{work.author || '著者情報なし'}</p>
         <div className="metrics result-metrics">
           <Stars score={work.score} />
-          {work.ratingsCount ? <span><MessageCircle size={14} /> {work.ratingsCount}</span> : null}
+          <span><MessageCircle size={14} /> {reviewCount}</span>
+          <span><Bookmark size={14} /> {saveCount}</span>
         </div>
         <div className="card-actions">
           <button className="ghost-button" onClick={() => onReview(work)}>
@@ -83,10 +123,11 @@ function ResultCard({ work, saved, onSave, onReview }) {
           ) : null}
           <button
             className={`save-button ${saved ? 'saved' : ''}`}
-            onClick={() => onSave(work.id)}
-            aria-label={saved ? '読みたいから外す' : '読みたいに追加'}
+            onClick={() => onSave(work)}
+            disabled={saved || saving}
+            aria-label={saved ? '読みたい登録済み' : '読みたいに追加'}
           >
-            {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+            {saving ? <LoaderCircle size={18} className="spin" /> : saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
           </button>
         </div>
       </div>
@@ -98,46 +139,122 @@ export default function App() {
   const [type, setType] = useState('manga')
   const [sort, setSort] = useState('weekly')
   const [query, setQuery] = useState('')
-  const [saved, setSaved] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('yomipic-saved') || '[]')) } catch { return new Set() }
-  })
+  const [saved, setSaved] = useState(() => new Set())
   const [selected, setSelected] = useState(null)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [rating, setRating] = useState(5)
   const [mood, setMood] = useState('')
   const [reviewText, setReviewText] = useState('')
-  const [postedReviews, setPostedReviews] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('yomipic-reviews') || '[]') } catch { return [] }
-  })
+  const [sharedReviews, setSharedReviews] = useState([])
+  const [saveRows, setSaveRows] = useState([])
   const [liveResults, setLiveResults] = useState([])
   const [liveLoading, setLiveLoading] = useState(false)
   const [liveError, setLiveError] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [communityLoading, setCommunityLoading] = useState(true)
+  const [communityError, setCommunityError] = useState('')
+  const [postingReview, setPostingReview] = useState(false)
+  const [savingId, setSavingId] = useState('')
+  const [deviceId] = useState(() => getDeviceId())
 
-  useEffect(() => {
-    localStorage.setItem('yomipic-saved', JSON.stringify([...saved]))
-  }, [saved])
+  const loadCommunity = async () => {
+    if (!supabaseReady) {
+      setCommunityError('Supabaseの環境変数が反映されていません。')
+      setCommunityLoading(false)
+      return
+    }
 
-  useEffect(() => {
-    localStorage.setItem('yomipic-reviews', JSON.stringify(postedReviews))
-  }, [postedReviews])
+    setCommunityLoading(true)
+    const [{ data: reviews, error: reviewError }, { data: saves, error: saveError }] = await Promise.all([
+      supabase.from('reviews').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.from('saves').select('*').order('created_at', { ascending: false }).limit(1000),
+    ])
 
-  const works = useMemo(() => {
-    let list = seedWorks.filter((work) => work.type === type)
-    if (sort === 'rising') return [...list].sort((a, b) => b.trend - a.trend)
-    if (sort === 'rated') return [...list].sort((a, b) => b.score - a.score)
-    return [...list].sort((a, b) => a.rank - b.rank)
-  }, [type, sort])
-
-  const toggleSaved = (id) => {
-    setSaved((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
+    if (reviewError || saveError) {
+      setCommunityError(reviewError?.message || saveError?.message || '共有データを取得できませんでした。')
+    } else {
+      setCommunityError('')
+      setSharedReviews(reviews || [])
+      setSaveRows(saves || [])
+      setSaved(new Set((saves || []).filter((row) => row.device_id === deviceId).map((row) => row.work_id)))
+    }
+    setCommunityLoading(false)
   }
 
+  useEffect(() => {
+    loadCommunity()
+  }, [])
+
+  const saveCountMap = useMemo(() => {
+    const map = new Map()
+    for (const row of saveRows) map.set(row.work_id, (map.get(row.work_id) || 0) + 1)
+    return map
+  }, [saveRows])
+
+  const reviewStatsMap = useMemo(() => {
+    const map = new Map()
+    for (const row of sharedReviews) {
+      const current = map.get(row.work_id) || { count: 0, total: 0 }
+      current.count += 1
+      current.total += Number(row.rating || 0)
+      map.set(row.work_id, current)
+    }
+    return map
+  }, [sharedReviews])
+
+  const communityWorks = useMemo(() => {
+    const map = new Map()
+
+    const ensure = (row) => {
+      if (!map.has(row.work_id)) map.set(row.work_id, workFromRow(row))
+      return map.get(row.work_id)
+    }
+
+    for (const row of saveRows) {
+      const work = ensure(row)
+      work.saves += 1
+      const age = Date.now() - new Date(row.created_at).getTime()
+      if (age < 7 * 86400000) work.recent = (work.recent || 0) + 1
+    }
+
+    for (const row of sharedReviews) {
+      const work = ensure(row)
+      work.reviews += 1
+      work.ratingTotal = (work.ratingTotal || 0) + Number(row.rating || 0)
+      const age = Date.now() - new Date(row.created_at).getTime()
+      if (age < 7 * 86400000) work.recent = (work.recent || 0) + 2
+    }
+
+    return [...map.values()].map((work) => ({
+      ...work,
+      score: work.reviews ? work.ratingTotal / work.reviews : 0,
+      popularity: work.saves * 2 + work.reviews * 3 + (work.recent || 0),
+    }))
+  }, [saveRows, sharedReviews])
+
+  const works = useMemo(() => {
+    const real = communityWorks.filter((work) => work.type === type)
+
+    if (real.length) {
+      if (sort === 'rising') return [...real].sort((a, b) => (b.recent || 0) - (a.recent || 0) || b.popularity - a.popularity)
+      if (sort === 'rated') return [...real].sort((a, b) => b.score - a.score || b.reviews - a.reviews)
+      return [...real].sort((a, b) => b.popularity - a.popularity)
+    }
+
+    let demo = seedWorks.filter((work) => work.type === type)
+    if (sort === 'rising') demo = [...demo].sort((a, b) => b.trend - a.trend)
+    if (sort === 'rated') demo = [...demo].sort((a, b) => b.score - a.score)
+    return demo
+  }, [communityWorks, type, sort])
+
+  const rankingIsDemo = !communityWorks.some((work) => work.type === type)
+
   const openReview = (work) => {
+    if (work.demo) {
+      document.getElementById('book-search')?.focus()
+      document.getElementById('top')?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
     setSelected(work)
     setReviewOpen(true)
     setRating(5)
@@ -145,23 +262,73 @@ export default function App() {
     setReviewText('')
   }
 
-  const submitReview = (event) => {
+  const submitReview = async (event) => {
     event.preventDefault()
-    if (!selected || !reviewText.trim()) return
-    setPostedReviews((prev) => [
-      {
-        id: Date.now(),
-        workId: selected.id,
-        work: selected,
+    if (!selected || !reviewText.trim() || !supabaseReady || postingReview) return
+
+    setPostingReview(true)
+    setCommunityError('')
+    const dbId = toDbWorkId(selected)
+
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert({
+        work_id: dbId,
+        title: selected.title,
+        author: selected.author || null,
+        image_url: selected.image || null,
+        genre: selected.genre || null,
         rating,
-        mood,
-        text: reviewText.trim(),
-        createdAt: new Date().toISOString(),
-      },
-      ...prev,
-    ])
-    setReviewOpen(false)
-    setReviewText('')
+        mood: mood || null,
+        body: reviewText.trim(),
+        device_id: deviceId,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      setCommunityError(`感想を保存できませんでした: ${error.message}`)
+    } else {
+      setSharedReviews((prev) => [data, ...prev])
+      setReviewOpen(false)
+      setReviewText('')
+    }
+    setPostingReview(false)
+  }
+
+  const saveWork = async (work) => {
+    if (!supabaseReady || work.demo) return
+    const dbId = toDbWorkId(work)
+    if (saved.has(dbId) || savingId) return
+
+    setSavingId(dbId)
+    setCommunityError('')
+
+    const { data, error } = await supabase
+      .from('saves')
+      .insert({
+        work_id: dbId,
+        title: work.title,
+        author: work.author || null,
+        image_url: work.image || null,
+        genre: work.genre || null,
+        device_id: deviceId,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      if (error.code === '23505') {
+        setSaved((prev) => new Set([...prev, dbId]))
+      } else {
+        setCommunityError(`「読みたい」を保存できませんでした: ${error.message}`)
+      }
+    } else {
+      setSaveRows((prev) => [data, ...prev])
+      setSaved((prev) => new Set([...prev, dbId]))
+    }
+
+    setSavingId('')
   }
 
   const searchBooks = async (event, forcedQuery) => {
@@ -202,7 +369,13 @@ export default function App() {
           <a href="#discover">作品を探す</a>
         </nav>
 
-        <button className="header-action" onClick={() => openReview(works[0] || seedWorks[0])}>
+        <button className="header-action" onClick={() => {
+          if (liveResults[0]) openReview(liveResults[0])
+          else {
+            document.getElementById('book-search')?.focus()
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }
+        }}>
           <PenLine size={17} />
           感想を書く
         </button>
@@ -211,13 +384,14 @@ export default function App() {
       <main id="top">
         <section className="hero">
           <div className="hero-inner">
-            <div className="eyebrow"><Sparkles size={16} /> みんなの「読んだ」が、次の一冊につながる。</div>
+            <div className="eyebrow"><Users size={16} /> 感想と「読みたい」が、みんなで共有されるようになりました。</div>
             <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
             <p>漫画と小説の人気ランキングをチェック。読んだ作品には、気軽にひとこと感想を残せます。</p>
 
             <form className="search-box" onSubmit={searchBooks}>
               <Search size={21} />
               <input
+                id="book-search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="実在する作品名・作者名から探す"
@@ -240,13 +414,21 @@ export default function App() {
           <div className="hero-orb orb-two" />
         </section>
 
+        {communityError && (
+          <div className="community-alert">
+            <strong>共有機能のお知らせ</strong>
+            <span>{communityError}</span>
+            <button onClick={loadCommunity}>再読み込み</button>
+          </div>
+        )}
+
         {hasSearched && (
           <section className="content-section search-results-section" id="search-results">
             <div className="section-top">
               <div>
                 <span className="section-kicker">REAL BOOK SEARCH</span>
                 <h2>「{query}」の検索結果</h2>
-                <p>Google Booksの書籍データから検索しています。</p>
+                <p>Google Booksの書籍データから検索。ヨミピク内の感想数・読みたい数も表示します。</p>
               </div>
               <div className="type-switch" role="tablist" aria-label="検索する作品タイプ">
                 <button className={type === 'manga' ? 'active' : ''} onClick={() => setType('manga')}>漫画</button>
@@ -259,14 +441,26 @@ export default function App() {
             ) : liveError ? (
               <div className="search-status error-status">
                 <Search size={26} />
-                <h3>実作品検索を使う準備があと1つ必要です</h3>
+                <h3>検索でエラーが発生しました</h3>
                 <p>{liveError}</p>
               </div>
             ) : liveResults.length ? (
               <div className="ranking-grid">
-                {liveResults.map((work) => (
-                  <ResultCard key={work.id} work={work} saved={saved.has(work.id)} onSave={toggleSaved} onReview={openReview} />
-                ))}
+                {liveResults.map((work) => {
+                  const dbId = toDbWorkId(work)
+                  return (
+                    <ResultCard
+                      key={work.id}
+                      work={work}
+                      saved={saved.has(dbId)}
+                      saving={savingId === dbId}
+                      saveCount={saveCountMap.get(dbId) || 0}
+                      reviewCount={reviewStatsMap.get(dbId)?.count || 0}
+                      onSave={saveWork}
+                      onReview={openReview}
+                    />
+                  )
+                })}
               </div>
             ) : (
               <div className="search-status"><Search size={28} /><h3>作品が見つかりませんでした</h3><p>タイトルや作者名を変えて検索してみてください。</p></div>
@@ -278,8 +472,12 @@ export default function App() {
           <div className="section-top">
             <div>
               <span className="section-kicker">RANKING</span>
-              <h2>いま読まれている作品</h2>
-              <p>ここは独自ランキング機能のデザイン確認用サンプルです。次の段階で実データ化します。</p>
+              <h2>ヨミピク人気ランキング</h2>
+              <p>
+                {rankingIsDemo
+                  ? 'まだ共有データがないため、現在はデザイン確認用のサンプルを表示しています。実作品に「読みたい」や感想が付くと自動で切り替わります。'
+                  : 'ヨミピク内の「読みたい」と感想をもとにした独自ランキングです。'}
+              </p>
             </div>
 
             <div className="type-switch" role="tablist" aria-label="作品タイプ">
@@ -290,7 +488,7 @@ export default function App() {
 
           <div className="sort-tabs">
             <button className={sort === 'weekly' ? 'active' : ''} onClick={() => setSort('weekly')}>
-              <Flame size={16} /> 今週人気
+              <Flame size={16} /> 人気
             </button>
             <button className={sort === 'rising' ? 'active' : ''} onClick={() => setSort('rising')}>
               <TrendingUp size={16} /> 急上昇
@@ -300,40 +498,50 @@ export default function App() {
             </button>
           </div>
 
-          <div className="ranking-grid">
-            {works.map((work, index) => (
-              <article className="work-card" key={work.id}>
-                <div className={`rank-badge rank-${index + 1}`}>
-                  {index < 3 ? <Trophy size={13} /> : null}
-                  {index + 1}
-                </div>
-                <Cover work={work} />
-                <div className="work-body">
-                  <div className="work-meta">{work.genre}</div>
-                  <h3>{work.title}</h3>
-                  <p className="author">{work.author}</p>
-                  <p className="tagline">{work.tagline}</p>
-                  <div className="metrics">
-                    <Stars score={work.score} />
-                    <span><MessageCircle size={14} /> {work.reviews + postedReviews.filter((r) => r.workId === work.id).length}</span>
-                    <span><Bookmark size={14} /> {work.saves + (saved.has(work.id) ? 1 : 0)}</span>
-                  </div>
-                  <div className="card-actions">
-                    <button className="ghost-button" onClick={() => openReview(work)}>
-                      <PenLine size={16} /> 感想
-                    </button>
-                    <button
-                      className={`save-button ${saved.has(work.id) ? 'saved' : ''}`}
-                      onClick={() => toggleSaved(work.id)}
-                      aria-label={saved.has(work.id) ? '読みたいから外す' : '読みたいに追加'}
-                    >
-                      {saved.has(work.id) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          {communityLoading ? (
+            <div className="search-status"><LoaderCircle size={28} className="spin" /><p>みんなの反応を集計しています…</p></div>
+          ) : (
+            <div className="ranking-grid">
+              {works.slice(0, 8).map((work, index) => {
+                const dbId = work.dbId || toDbWorkId(work)
+                return (
+                  <article className="work-card" key={dbId}>
+                    <div className={`rank-badge rank-${index + 1}`}>
+                      {index < 3 ? <Trophy size={13} /> : null}
+                      {index + 1}
+                    </div>
+                    <Cover work={work} />
+                    <div className="work-body">
+                      <div className="work-meta">{work.genre}</div>
+                      <h3>{work.title}</h3>
+                      <p className="author">{work.author}</p>
+                      <p className="tagline">{work.tagline}</p>
+                      <div className="metrics">
+                        <Stars score={work.score} />
+                        <span><MessageCircle size={14} /> {work.reviews || 0}</span>
+                        <span><Bookmark size={14} /> {work.saves || 0}</span>
+                      </div>
+                      {!work.demo && (
+                        <div className="card-actions">
+                          <button className="ghost-button" onClick={() => openReview(work)}>
+                            <PenLine size={16} /> 感想
+                          </button>
+                          <button
+                            className={`save-button ${saved.has(dbId) ? 'saved' : ''}`}
+                            onClick={() => saveWork(work)}
+                            disabled={saved.has(dbId) || savingId === dbId}
+                            aria-label={saved.has(dbId) ? '読みたい登録済み' : '読みたいに追加'}
+                          >
+                            {saved.has(dbId) ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         <section className="discover-section" id="discover">
@@ -355,55 +563,45 @@ export default function App() {
             <div>
               <span className="section-kicker">REVIEWS</span>
               <h2>みんなのひとこと感想</h2>
-              <p>長文じゃなくてもOK。あなたが投稿した感想はこの端末に保存されます。</p>
+              <p>投稿された感想は全ユーザーに共有されます。ネタバレの強い内容は避けて投稿してください。</p>
             </div>
           </div>
 
           <div className="review-feed">
-            {postedReviews.length > 0 ? postedReviews.slice(0, 6).map((review) => {
-              const work = review.work || seedWorks.find((item) => item.id === review.workId)
-              if (!work) return null
+            {sharedReviews.length > 0 ? sharedReviews.slice(0, 8).map((review) => {
+              const work = workFromRow(review)
               return (
                 <article className="review-card" key={review.id}>
-                  <div className="review-user"><span>Y</span><div><strong>あなた</strong><small>投稿済み</small></div></div>
+                  <div className="review-user"><span>Y</span><div><strong>ヨミピク読者</strong><small>{new Date(review.created_at).toLocaleDateString('ja-JP')}</small></div></div>
                   <div className="review-work"><Cover work={work} small /><div><small>{work.genre}</small><strong>{work.title}</strong></div></div>
                   <div className="review-score"><Stars score={review.rating} /> {review.mood && <span>{review.mood}</span>}</div>
-                  <p>{review.text}</p>
+                  <p>{review.body}</p>
                 </article>
               )
             }) : (
-              <>
-                <article className="review-card">
-                  <div className="review-user"><span>M</span><div><strong>mio</strong><small>サンプル</small></div></div>
-                  <div className="review-work"><Cover work={seedWorks[0]} small /><div><small>{seedWorks[0].genre}</small><strong>{seedWorks[0].title}</strong></div></div>
-                  <div className="review-score"><Stars score={5} /><span>💕 キュン</span></div>
-                  <p>会話のテンポが好き。放課後の空気感がすごくリアルで、一気に読んだ。</p>
-                </article>
-                <article className="review-card">
-                  <div className="review-user"><span>K</span><div><strong>kei</strong><small>サンプル</small></div></div>
-                  <div className="review-work"><Cover work={seedWorks[6]} small /><div><small>{seedWorks[6].genre}</small><strong>{seedWorks[6].title}</strong></div></div>
-                  <div className="review-score"><Stars score={4} /><span>🤯 衝撃</span></div>
-                  <p>短い章ごとに謎がほどけていく感じが気持ちいい。寝る前に少しずつ読むのにも良さそう。</p>
-                </article>
-              </>
+              <div className="search-status review-empty">
+                <MessageCircle size={28} />
+                <h3>最初の感想を投稿してみよう</h3>
+                <p>上の検索から実在作品を探して「感想」を押すと、ここに全ユーザー共有で表示されます。</p>
+              </div>
             )}
           </div>
         </section>
 
         <section className="cta-section">
           <div>
-            <span className="section-kicker light">YOUR BOOKSHELF</span>
-            <h2>あなたの「好き」を、本棚に。</h2>
-            <p>「読みたい」はこの端末に保存されるので、ページを閉じても残ります。</p>
+            <span className="section-kicker light">COMMUNITY</span>
+            <h2>あなたの「好き」がランキングを動かす。</h2>
+            <p>「読みたい」と感想が集まるほど、ヨミピク独自ランキングが育っていきます。</p>
           </div>
-          <a href="#search-results">作品を探す <ChevronRight size={18} /></a>
+          <a href="#top">作品を探す <ChevronRight size={18} /></a>
         </section>
       </main>
 
       <footer>
         <a className="brand footer-brand" href="#top"><span className="brand-icon"><BookOpen size={19} /></span><span>ヨミピク</span></a>
         <p>漫画・小説のランキングと感想を楽しむ読書コミュニティ。</p>
-        <small>© 2026 YomiPic. ランキング部分の作品は現在UI確認用の架空データです。実作品検索にはGoogle Booksを利用します。</small>
+        <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。</small>
       </footer>
 
       {reviewOpen && selected && (
@@ -412,7 +610,7 @@ export default function App() {
             <button className="modal-close" onClick={() => setReviewOpen(false)} aria-label="閉じる"><X size={20} /></button>
             <div className="modal-head">
               <Cover work={selected} small />
-              <div><small>感想を書く</small><h3>{selected.title}</h3><p>{selected.author}</p></div>
+              <div><small>みんなに感想を共有</small><h3>{selected.title}</h3><p>{selected.author}</p></div>
             </div>
 
             <form onSubmit={submitReview}>
@@ -442,7 +640,12 @@ export default function App() {
                 maxLength={240}
                 required
               />
-              <div className="form-bottom"><span>{reviewText.length}/240</span><button type="submit">感想を投稿する</button></div>
+              <div className="form-bottom">
+                <span>{reviewText.length}/240</span>
+                <button type="submit" disabled={postingReview}>
+                  {postingReview ? '投稿中…' : 'みんなに投稿する'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
