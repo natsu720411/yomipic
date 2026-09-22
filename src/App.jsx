@@ -182,6 +182,7 @@ export default function App() {
     setRating(5)
     setMood('')
     setReviewText('')
+    setCommunityError('')
   }
 
   const submitReview = async (event) => {
@@ -493,6 +494,8 @@ export default function App() {
                   <button type="button" key={item} className={mood === item ? 'active' : ''} onClick={() => setMood(item)}>{item}</button>
                 ))}
               </div>
+
+              {communityError && <div className="modal-error">{communityError}</div>}
 
               <label htmlFor="reviewText">ひとこと感想</label>
               <textarea
