@@ -52,6 +52,43 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const kind = String(req.query.kind || 'all')
 
+      if (kind === 'write-check') {
+        try {
+          await supabaseFetch('/rest/v1/reviews', {
+            method: 'POST',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              work_id: 'debug::permission-check',
+              title: 'permission-check',
+              rating: 0,
+              body: 'permission-check',
+              device_id: 'permission-check',
+            }),
+          })
+          return res.status(500).json({
+            ok: false,
+            stage: 'unexpected',
+            error: 'Validation unexpectedly passed',
+          })
+        } catch (error) {
+          // rating=0 intentionally violates the database CHECK constraint.
+          // 23514 means the request reached INSERT permission successfully and was rejected only by validation.
+          if (error.code === '23514') {
+            return res.status(200).json({
+              ok: true,
+              stage: 'insert-permission',
+              message: 'Supabase insert permission is working',
+            })
+          }
+          return res.status(Number(error.status) || 500).json({
+            ok: false,
+            stage: 'insert-permission',
+            code: error.code || null,
+            error: error.message || 'Insert permission check failed',
+          })
+        }
+      }
+
       if (kind === 'reviews') {
         const reviews = await supabaseFetch(
           '/rest/v1/reviews?select=id,work_id,title,author,image_url,genre,rating,mood,body,created_at&order=created_at.desc&limit=100'
