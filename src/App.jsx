@@ -22,19 +22,36 @@ import {
 const moods = ['😭 泣ける', '😂 笑える', '💕 キュン', '🔥 熱い', '🤯 衝撃', '📖 一気読み']
 
 const discoveryTopics = [
-  { label: '恋愛漫画', query: '恋愛', type: 'manga', emoji: '💕' },
-  { label: '青春漫画', query: '青春', type: 'manga', emoji: '🌸' },
-  { label: 'ファンタジー漫画', query: 'ファンタジー', type: 'manga', emoji: '✨' },
-  { label: 'ミステリー漫画', query: 'ミステリー', type: 'manga', emoji: '🔎' },
-  { label: '泣ける漫画', query: '感動', type: 'manga', emoji: '😭' },
-  { label: '恋愛小説', query: '恋愛', type: 'novel', emoji: '💗' },
-  { label: '青春小説', query: '青春', type: 'novel', emoji: '📚' },
-  { label: 'ミステリー小説', query: 'ミステリー', type: 'novel', emoji: '🕵️' },
-  { label: 'ファンタジー小説', query: 'ファンタジー', type: 'novel', emoji: '🌙' },
-  { label: '泣ける小説', query: '感動', type: 'novel', emoji: '🥹' },
+  { slug: 'romance', label: '恋愛漫画', query: '恋愛', type: 'manga', emoji: '💕', description: '胸キュンから大人の恋まで、定番の恋愛漫画を中心に探せます。' },
+  { slug: 'youth', label: '青春漫画', query: '青春', type: 'manga', emoji: '🌸', description: '学校、友情、部活、成長を描く青春漫画の定番作品を探せます。' },
+  { slug: 'fantasy', label: 'ファンタジー漫画', query: 'ファンタジー', type: 'manga', emoji: '✨', description: '冒険や魔法、異世界など世界観を楽しめるファンタジー漫画を探せます。' },
+  { slug: 'mystery', label: 'ミステリー漫画', query: 'ミステリー', type: 'manga', emoji: '🔎', description: '謎解き、事件、サスペンスを楽しめるミステリー漫画を探せます。' },
+  { slug: 'emotional', label: '泣ける漫画', query: '感動', type: 'manga', emoji: '😭', description: '家族、友情、別れ、成長を描いた心に残る漫画を探せます。' },
+  { slug: 'isekai', label: '異世界漫画', query: '異世界', type: 'manga', emoji: '🪄', description: '転生・召喚・異世界冒険など人気の異世界漫画を中心に探せます。' },
+  { slug: 'sports', label: 'スポーツ漫画', query: 'スポーツ', type: 'manga', emoji: '🏐', description: 'バレー、サッカー、バスケなど熱いスポーツ漫画の定番作品を探せます。' },
+  { slug: 'horror', label: 'ホラー漫画', query: 'ホラー', type: 'manga', emoji: '👻', description: '怪異、都市伝説、心理ホラーなど怖くて続きが気になる漫画を探せます。' },
+  { slug: 'romance', label: '恋愛小説', query: '恋愛', type: 'novel', emoji: '💗', description: '切ない恋から温かな恋愛まで、読み継がれる恋愛小説を探せます。' },
+  { slug: 'youth', label: '青春小説', query: '青春', type: 'novel', emoji: '📚', description: '学生生活、友情、成長を描いた青春小説の定番作品を探せます。' },
+  { slug: 'mystery', label: 'ミステリー小説', query: 'ミステリー', type: 'novel', emoji: '🕵️', description: '本格推理からサスペンスまで、人気のミステリー小説を探せます。' },
+  { slug: 'fantasy', label: 'ファンタジー小説', query: 'ファンタジー', type: 'novel', emoji: '🌙', description: '壮大な世界観や不思議な物語を楽しめるファンタジー小説を探せます。' },
+  { slug: 'emotional', label: '泣ける小説', query: '感動', type: 'novel', emoji: '🥹', description: '読後に余韻が残る、感動や人とのつながりを描いた小説を探せます。' },
+  { slug: 'sf', label: 'SF小説', query: 'SF', type: 'novel', emoji: '🚀', description: '宇宙、未来、科学をテーマにした国内外の定番SF小説を探せます。' },
+  { slug: 'horror', label: 'ホラー小説', query: 'ホラー', type: 'novel', emoji: '🕯️', description: '怪談、心理恐怖、異常な日常を描く人気ホラー小説を探せます。' },
+  { slug: 'historical', label: '歴史小説', query: '歴史', type: 'novel', emoji: '🏯', description: '戦国・幕末など歴史の人物や時代を描いた定番小説を探せます。' },
 ]
 
+function rankingHref(type) {
+  return `/ranking/${type === 'novel' ? 'novel' : 'manga'}`
+}
+
+function topicHref(topic) {
+  return `/theme/${topic.type}/${topic.slug}`
+}
+
 function searchHref(query, type) {
+  const topic = discoveryTopics.find((item) => item.query === query && item.type === type)
+  if (topic) return topicHref(topic)
+
   const params = new URLSearchParams({
     q: query,
     type: type === 'novel' ? 'novel' : 'manga',
@@ -45,6 +62,20 @@ function searchHref(query, type) {
 function searchPageLabel(query, type) {
   const topic = discoveryTopics.find((item) => item.query === query && item.type === type)
   return topic?.label || `${query}${type === 'novel' ? '小説' : '漫画'}`
+}
+
+function routeInfo() {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  const rankingMatch = path.match(/^\/ranking\/(manga|novel)$/)
+  if (rankingMatch) return { kind: 'ranking', type: rankingMatch[1] }
+
+  const themeMatch = path.match(/^\/theme\/(manga|novel)\/([a-z0-9-]+)$/)
+  if (themeMatch) {
+    const topic = discoveryTopics.find((item) => item.type === themeMatch[1] && item.slug === themeMatch[2])
+    if (topic) return { kind: 'theme', type: topic.type, topic }
+  }
+
+  return { kind: 'home' }
 }
 
 function getDeviceId() {
@@ -211,6 +242,7 @@ export default function App() {
   const [liveLoading, setLiveLoading] = useState(false)
   const [liveError, setLiveError] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [pageRoute, setPageRoute] = useState(() => routeInfo())
 
   useEffect(() => {
     localStorage.setItem('yomipic-saved', JSON.stringify([...saved]))
