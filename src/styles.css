@@ -257,3 +257,36 @@ footer small { font-size: 10px; }
   .work-body h3 { font-size: 13px; }
   .metrics { font-size: 10px; }
 }
+
+
+/* Supabase community features */
+.community-alert {
+  max-width: 1132px;
+  margin: 24px auto 0;
+  padding: 13px 16px;
+  border: 1px solid #f0d7a4;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #72551d;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.community-alert span { flex: 1; }
+.community-alert button {
+  border: 0;
+  border-radius: 9px;
+  background: #fff;
+  color: #72551d;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.save-button:disabled { cursor: default; }
+.form-bottom button:disabled { opacity: .65; cursor: wait; }
+.review-empty { grid-column: 1 / -1; }
+@media (max-width: 620px) {
+  .community-alert { margin: 16px 16px 0; align-items: flex-start; flex-wrap: wrap; }
+  .community-alert button { margin-left: auto; }
+}
