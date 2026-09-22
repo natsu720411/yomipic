@@ -46,6 +46,24 @@ function detailUrl(workId) {
   return `https://yomipic.vercel.app/?${params.toString()}`
 }
 
+const discoveryPages = [
+  ['恋愛', 'manga'],
+  ['青春', 'manga'],
+  ['ファンタジー', 'manga'],
+  ['ミステリー', 'manga'],
+  ['感動', 'manga'],
+  ['恋愛', 'novel'],
+  ['青春', 'novel'],
+  ['ミステリー', 'novel'],
+  ['ファンタジー', 'novel'],
+  ['感動', 'novel'],
+]
+
+function discoveryUrl(query, type) {
+  const params = new URLSearchParams({ q: query, type })
+  return `https://yomipic.vercel.app/?${params.toString()}`
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).send('Method Not Allowed')
@@ -75,6 +93,11 @@ export default async function handler(req, res) {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>`,
+      ...discoveryPages.map(([query, type]) => `  <url>
+    <loc>${xmlEscape(discoveryUrl(query, type))}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`),
       ...[...pages.entries()].map(([url, date]) => `  <url>
     <loc>${xmlEscape(url)}</loc>
     ${date ? `<lastmod>${date.toISOString().slice(0, 10)}</lastmod>` : ''}
@@ -92,11 +115,13 @@ ${urls.join('\n')}
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400')
     return res.status(200).send(xml)
   } catch {
+    const fallbackUrls = [
+      'https://yomipic.vercel.app/',
+      ...discoveryPages.map(([query, type]) => discoveryUrl(query, type)),
+    ]
     const fallback = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://yomipic.vercel.app/</loc>
-  </url>
+${fallbackUrls.map((url) => `  <url><loc>${xmlEscape(url)}</loc></url>`).join('\n')}
 </urlset>`
     res.setHeader('Content-Type', 'application/xml; charset=utf-8')
     return res.status(200).send(fallback)
