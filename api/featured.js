@@ -1,28 +1,74 @@
+const ranked = (rows) => rows.map(([title, author = ''], index) => ({
+  title,
+  author,
+  baseline: 180 - index * 3,
+}))
+
 const rankings = {
-  manga: [
-    { title: 'キングダム', author: '原泰久', baseline: 100 },
-    { title: '葬送のフリーレン', author: '山田鐘人', baseline: 95 },
-    { title: 'ONE PIECE', author: '尾田栄一郎', baseline: 93 },
-    { title: 'メダリスト', author: 'つるまいかだ', baseline: 88 },
-    { title: 'ブルーロック', author: '金城宗幸', baseline: 86 },
-    { title: '呪術廻戦', author: '芥見下々', baseline: 84 },
-    { title: '薫る花は凛と咲く', author: '三香見サカ', baseline: 82 },
-    { title: 'SPY×FAMILY', author: '遠藤達哉', baseline: 80 },
-    { title: '薬屋のひとりごと', author: '日向夏', baseline: 78 },
-    { title: 'ダンダダン', author: '龍幸伸', baseline: 76 },
-  ],
-  novel: [
-    { title: 'プロジェクト・ヘイル・メアリー', author: 'アンディ・ウィアー', baseline: 100 },
-    { title: '変な地図', author: '雨穴', baseline: 95 },
-    { title: 'わたしの幸せな結婚', author: '顎木あくみ', baseline: 92 },
-    { title: '成瀬は都を駆け抜ける', author: '宮島未奈', baseline: 87 },
-    { title: '爆弾', author: '呉勝浩', baseline: 84 },
-    { title: '国宝', author: '吉田修一', baseline: 82 },
-    { title: 'カフネ', author: '阿部暁子', baseline: 80 },
-    { title: '方舟', author: '夕木春央', baseline: 78 },
-    { title: '十角館の殺人', author: '綾辻行人', baseline: 76 },
-    { title: '三体', author: '劉慈欣', baseline: 74 },
-  ],
+  manga: ranked([
+    ['キングダム', '原泰久'],
+    ['信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル９９９９の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！', '大前貴史'],
+    ['黄泉のツガイ', '荒川弘'],
+    ['勇者パーティを追い出された器用貧乏　～パーティ事情で付与術士をやっていた剣士、万能へと至る～'],
+    ['葬送のフリーレン', '山田鐘人'],
+    ['ONE PIECE', '尾田栄一郎'],
+    ['転生したらスライムだった件', '川上泰樹'],
+    ['雑用付与術師が自分の最強に気付くまで'],
+    ['メダリスト', 'つるまいかだ'],
+    ['お気楽領主の楽しい領地防衛'],
+    ['ブルーロック', '金城宗幸'],
+    ['みいちゃんと山田さん'],
+    ['NARUTO―ナルト―', '岸本斉史'],
+    ['呪術廻戦', '芥見下々'],
+    ['シャングリラ・フロンティア', '不二涼介'],
+    ['俺だけレベルアップな件'],
+    ['片田舎のおっさん、剣聖になる', '乍藤和樹'],
+    ['引退したおっさん冒険者、再雇用で最強ギルドマスターになってしまう'],
+    ['とんがり帽子のアトリエ', '白浜鴎'],
+    ['宇宙兄弟', '小山宙哉'],
+    ['SAKAMOTO DAYS', '鈴木祐斗'],
+    ['転生したら第七王子だったので、気ままに魔術を極めます', '石沢庸介'],
+    ['薫る花は凛と咲く', '三香見サカ'],
+    ['チェンソーマン', '藤本タツキ'],
+    ['ゴールデンカムイ', '野田サトル'],
+    ['魔入りました！入間くん', '西修'],
+    ['SPY×FAMILY', '遠藤達哉'],
+    ['ヘルモード　～やり込み好きのゲーマーは廃設定の異世界で無双する～'],
+    ['ワールドトリガー', '葦原大介'],
+    ['貴族転生　～恵まれた生まれから最強の力を得る～'],
+  ]),
+  novel: ranked([
+    ['プロジェクト・ヘイル・メアリー', 'アンディ・ウィアー'],
+    ['変な地図', '雨穴'],
+    ['わたしの幸せな結婚', '顎木あくみ'],
+    ['イン・ザ・メガチャーチ'],
+    ['化物語', '西尾維新'],
+    ['隠蔽捜査', '今野敏'],
+    ['成瀬は都を駆け抜ける', '宮島未奈'],
+    ['イクサガミ', '今村翔吾'],
+    ['拝啓見知らぬ旦那様、離婚していただきます'],
+    ['シークレット・オブ・シークレッツ', 'ダン・ブラウン'],
+    ['宝石商リチャード氏の謎鑑定', '辻村七子'],
+    ['法廷占拠　爆弾２', '呉勝浩'],
+    ['准教授・高槻彰良の推察', '澤村御影'],
+    ['爆弾', '呉勝浩'],
+    ['囚われた王女は二度、幸せな夢を見る'],
+    ['館シリーズ', '綾辻行人'],
+    ['烏に単は似合わない', '阿部智里'],
+    ['殺し屋の営業術'],
+    ['変な家2 ～11の間取り図～', '雨穴'],
+    ['ビブリア古書堂の事件手帖', '三上延'],
+    ['公爵家の長女でした'],
+    ['暁星'],
+    ['水無月家の許嫁', '友麻碧'],
+    ['三体', '劉慈欣'],
+    ['国宝', '吉田修一'],
+    ['方舟', '夕木春央'],
+    ['さよならジャバウォック'],
+    ['探偵小石は恋しない'],
+    ['皇帝の薬膳妃'],
+    ['陰陽師', '夢枕獏'],
+  ]),
 }
 
 function normalizeText(value) {
@@ -53,8 +99,8 @@ function bestImage(info) {
 function normalize(item, type, seed, seedRank) {
   const info = item?.volumeInfo || {}
   return {
-    id: `google-${item.id}`,
-    sourceId: item.id,
+    id: item?.id ? `google-${item.id}` : `seed-${type}-${seedRank}`,
+    sourceId: item?.id || '',
     type,
     title: seed.title,
     sourceTitle: info.title || seed.title,
@@ -75,8 +121,12 @@ function normalize(item, type, seed, seedRank) {
 }
 
 async function findBook(seed, type, apiKey) {
+  const exactQuery = seed.author
+    ? `intitle:${seed.title} inauthor:${seed.author}`
+    : `intitle:${seed.title}`
+
   const params = new URLSearchParams({
-    q: `intitle:${seed.title} inauthor:${seed.author}`,
+    q: exactQuery,
     maxResults: '8',
     printType: 'books',
     orderBy: 'relevance',
@@ -92,7 +142,7 @@ async function findBook(seed, type, apiKey) {
   let items = data.items || []
   if (!items.length) {
     const fallback = new URLSearchParams({
-      q: seed.title,
+      q: `${seed.title} ${type === 'manga' ? '漫画' : '小説'}`,
       maxResults: '8',
       printType: 'books',
       orderBy: 'relevance',
@@ -128,6 +178,25 @@ async function findBook(seed, type, apiKey) {
   return scored[0]?.score >= 45 ? scored[0].item : items[0] || null
 }
 
+async function mapWithConcurrency(items, limit, mapper) {
+  const results = new Array(items.length)
+  let cursor = 0
+
+  const worker = async () => {
+    while (true) {
+      const index = cursor++
+      if (index >= items.length) return
+      results[index] = await mapper(items[index], index)
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => worker())
+  )
+
+  return results
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'GETのみ対応しています' })
@@ -142,18 +211,18 @@ export default async function handler(req, res) {
   const seeds = rankings[type]
 
   try {
-    const found = await Promise.all(
-      seeds.map((seed) => findBook(seed, type, apiKey).catch(() => null))
+    const found = await mapWithConcurrency(
+      seeds,
+      8,
+      (seed) => findBook(seed, type, apiKey).catch(() => null),
     )
 
-    const items = found
-      .map((item, index) => item ? normalize(item, type, seeds[index], index + 1) : null)
-      .filter(Boolean)
+    const items = seeds.map((seed, index) => normalize(found[index], type, seed, index + 1))
 
     res.setHeader('Cache-Control', 's-maxage=43200, stale-while-revalidate=86400')
     return res.status(200).json({
       items,
-      methodology: '公開ランキング・販売動向を参考にした初期順位に、ヨミピク内の反応を加味します。',
+      methodology: 'BookLive 2026年上半期ランキングの順位を初期値にし、ヨミピク内の「読みたい」と感想を加味して順位が変化します。',
       sources: [
         {
           label: 'BookLive 2026年上半期ランキング',
