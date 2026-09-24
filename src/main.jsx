@@ -70,6 +70,16 @@ function enhanceFooterAndReviews() {
     link.textContent = 'この感想を通報'
     card.appendChild(link)
   })
+
+  const related = document.querySelector('.detail-related-links')
+  if (related && !related.querySelector('.detail-ranking-link')) {
+    const isNovel = currentPath().startsWith('/series/novel/') || document.querySelector('.detail-type')?.textContent?.includes('小説')
+    const link = document.createElement('a')
+    link.className = 'detail-ranking-link'
+    link.href = isNovel ? '/ranking/novel' : '/ranking/manga'
+    link.innerHTML = `<span>RANKING</span><strong>${isNovel ? '小説' : '漫画'}ランキング30位まで見る</strong><small>ほかの人気作品を探す</small>`
+    related.appendChild(link)
+  }
 }
 
 syncRouteMode()
