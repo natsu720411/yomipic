@@ -7,6 +7,18 @@
     {
       "source": "/series/:type/:title",
       "destination": "/"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/"
+    },
+    {
+      "source": "/terms",
+      "destination": "/"
+    },
+    {
+      "source": "/contact",
+      "destination": "/"
     }
   ]
 }
