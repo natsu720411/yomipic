@@ -1,0 +1,182 @@
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-11),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-12),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-13),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-14),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-15),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-16),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-17),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-18),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-19),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-20),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-21),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-22),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-23),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-24),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-25),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-26),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-27),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-28),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-29),
+body[data-yomipic-route="home"] #ranking .work-card:has(.rank-30) {
+  display: none;
+}
+
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-11),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-12),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-13),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-14),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-15),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-16),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-17),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-18),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-19),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-20),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-21),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-22),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-23),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-24),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-25),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-26),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-27),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-28),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-29),
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-30) {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: 108px minmax(0,1fr);
+  align-items: stretch;
+  min-height: 164px;
+}
+
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-11) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-12) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-13) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-14) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-15) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-16) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-17) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-18) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-19) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-20) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-21) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-22) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-23) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-24) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-25) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-26) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-27) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-28) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-29) .cover,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-30) .cover {
+  height: 100%;
+  min-height: 164px;
+  aspect-ratio: auto;
+}
+
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-11) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-12) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-13) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-14) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-15) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-16) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-17) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-18) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-19) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-20) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-21) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-22) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-23) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-24) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-25) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-26) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-27) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-28) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-29) .tagline,
+body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-30) .tagline {
+  display: none;
+}
+
+.ranking-more-link {
+  width: fit-content;
+  margin: 26px auto 0;
+  padding: 11px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d9cdee;
+  border-radius: 999px;
+  background: white;
+  color: #6d28d9;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.report-review-link {
+  display: inline-flex;
+  margin-top: 9px;
+  color: #968e9f;
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-links [data-yomipic-legal-link] {
+  color: #756d80;
+}
+
+.legal-shell { min-height: 100vh; background: #fbfaff; color: #17151f; }
+.legal-header { min-height: 68px; padding: 0 clamp(20px,5vw,72px); display: flex; align-items: center; gap: 28px; border-bottom: 1px solid #ebe7f2; background: rgba(255,255,255,.94); }
+.legal-brand { display: inline-flex; align-items: center; gap: 9px; font-size: 20px; font-weight: 900; }
+.legal-brand > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: white; background: linear-gradient(145deg,#7c3aed,#ec4899); }
+.legal-header nav { margin-left: auto; display: flex; gap: 20px; flex-wrap: wrap; }
+.legal-header nav a { color: #625b6d; font-size: 12px; font-weight: 800; }
+.legal-main { max-width: 840px; margin: 0 auto; padding: 70px 24px 90px; }
+.legal-back { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 32px; color: #756d80; font-size: 12px; font-weight: 800; }
+.legal-kicker { color: #7c3aed; font-size: 11px; font-weight: 900; letter-spacing: .16em; }
+.legal-main h1 { margin: 8px 0 20px; font-size: clamp(36px,6vw,58px); letter-spacing: -.055em; }
+.legal-lead { margin: 0 0 38px; color: #625b6d; font-size: 15px; line-height: 1.9; }
+.legal-main section { margin-top: 34px; padding-top: 30px; border-top: 1px solid #ebe7f2; }
+.legal-main section h2 { margin: 0 0 12px; font-size: 19px; }
+.legal-main section p, .legal-main section li { color: #655e70; font-size: 13px; line-height: 1.9; }
+.legal-main section ul { padding-left: 22px; }
+.legal-inline-link { display: inline-flex; align-items: center; gap: 5px; color: #6d28d9; font-size: 12px; font-weight: 800; }
+.legal-primary-button { margin-top: 12px; padding: 11px 15px; display: inline-flex; align-items: center; gap: 7px; border-radius: 11px; background: #17151f; color: white; font-size: 12px; font-weight: 900; }
+.report-target { margin: 24px 0 8px; padding: 16px; display: flex; gap: 12px; border: 1px solid #eadff8; border-radius: 14px; background: #f8f4ff; color: #6d28d9; }
+.report-target strong { font-size: 12px; }
+.report-target p { margin: 4px 0 0; color: #625b6d; font-size: 11px; line-height: 1.6; }
+.legal-updated { margin-top: 48px; color: #9a93a2; font-size: 11px; }
+.legal-footer { padding: 28px clamp(20px,5vw,72px); display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid #ebe7f2; background: white; color: #716b7e; font-size: 11px; font-weight: 800; }
+.legal-footer div { display: flex; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 700px) {
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-11),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-12),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-13),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-14),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-15),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-16),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-17),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-18),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-19),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-20),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-21),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-22),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-23),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-24),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-25),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-26),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-27),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-28),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-29),
+  body[data-yomipic-route="ranking"] #ranking .work-card:has(.rank-30) {
+    grid-column: auto;
+    grid-template-columns: 86px minmax(0,1fr);
+    min-height: 142px;
+  }
+
+  .legal-header { padding: 14px 16px; align-items: flex-start; flex-direction: column; }
+  .legal-header nav { margin-left: 0; gap: 12px; }
+  .legal-main { padding: 48px 16px 70px; }
+  .legal-footer { padding: 24px 16px; flex-direction: column; }
+}
