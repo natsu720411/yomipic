@@ -50,6 +50,8 @@ function detailUrl(row) {
   return `https://yomipic.vercel.app/series/${type}/${encodeURIComponent(title)}`
 }
 
+const STATIC_LASTMOD = '2026-10-06'
+
 const staticSeriesPages = [
   ['manga', 'キングダム'],
   ['manga', '葬送のフリーレン'],
@@ -107,20 +109,13 @@ function landingUrl(path) {
 }
 
 function urlEntry(url, { lastmod, changefreq = 'weekly', priority = '0.8' } = {}) {
-  return `  <url>
-    <loc>${xmlEscape(url)}</loc>
-    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`
+  return `  <url>\n    <loc>${xmlEscape(url)}</loc>\n    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).send('Method Not Allowed')
   }
-
-  const today = new Date().toISOString().slice(0, 10)
 
   try {
     const [reviews, saves] = await Promise.all([
@@ -140,18 +135,15 @@ export default async function handler(req, res) {
     }
 
     const urls = [
-      urlEntry('https://yomipic.vercel.app/', { lastmod: today, changefreq: 'daily', priority: '1.0' }),
-      ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: today, priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
-      ...staticSeriesPages.map((path) => urlEntry(landingUrl(path), { lastmod: today, priority: '0.8' })),
+      urlEntry('https://yomipic.vercel.app/', { lastmod: STATIC_LASTMOD, changefreq: 'weekly', priority: '1.0' }),
+      ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: STATIC_LASTMOD, priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
+      ...staticSeriesPages.map((path) => urlEntry(landingUrl(path), { lastmod: STATIC_LASTMOD, priority: '0.8' })),
       ...[...detailPages.entries()].filter(([url]) => !staticSeriesPages.some((path) => landingUrl(path) === url)).map(([url, date]) =>
         urlEntry(url, { lastmod: date ? date.toISOString().slice(0, 10) : undefined, priority: '0.7' })
       ),
     ]
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.join('\n')}
-</urlset>`
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8')
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400')
@@ -162,10 +154,7 @@ ${urls.join('\n')}
       ...landingPages.map(landingUrl),
       ...staticSeriesPages.map(landingUrl),
     ]
-    const fallback = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${fallbackUrls.map((url) => `  <url><loc>${xmlEscape(url)}</loc></url>`).join('\n')}
-</urlset>`
+    const fallback = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${fallbackUrls.map((url) => `  <url><loc>${xmlEscape(url)}</loc></url>`).join('\n')}\n</urlset>`
     res.setHeader('Content-Type', 'application/xml; charset=utf-8')
     return res.status(200).send(fallback)
   }
