@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
+import { staticSeoItems } from './seo-static-data.js'
 
 const seriesPages = [
   ['manga', 'キングダム', '原泰久'],
@@ -28,18 +29,21 @@ const seriesPages = [
   path: `series/${type}/${title}`,
   title: `${title}の感想・評価｜ヨミピク`,
   description: `${title}${author ? `（${author}）` : ''}の感想・評価をチェック。巻ごとの反応を作品タイトル単位にまとめ、レビューや「読みたい」数から次に読む作品を探せます。`,
+  type,
+  workTitle: title,
+  author,
 }))
 
 const seoPages = [
   {
     path: 'ranking/manga',
-    title: '漫画人気ランキング｜おすすめ作品・感想｜ヨミピク',
-    description: '漫画の人気作品をタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。',
+    title: '漫画人気ランキング30選｜おすすめ作品・感想｜ヨミピク',
+    description: '漫画の人気作品を30位までタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。',
   },
   {
     path: 'ranking/novel',
-    title: '小説人気ランキング｜おすすめ作品・感想｜ヨミピク',
-    description: '小説の人気作品をタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。',
+    title: '小説人気ランキング30選｜おすすめ作品・感想｜ヨミピク',
+    description: '小説の人気作品を30位までタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。',
   },
   { path: 'theme/manga/romance', title: '恋愛漫画おすすめ・人気作品｜ヨミピク', description: '胸キュンから大人の恋まで、定番の恋愛漫画を中心に紹介。感想や「読みたい」数も見ながら次に読む作品を探せます。' },
   { path: 'theme/manga/youth', title: '青春漫画おすすめ・人気作品｜ヨミピク', description: '学校、友情、部活、成長を描く青春漫画の定番作品を紹介。感想や「読みたい」数も確認できます。' },
@@ -76,6 +80,30 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;')
 }
 
+function pageType(page) {
+  if (page.path.includes('/novel')) return 'novel'
+  if (page.path.includes('/manga')) return 'manga'
+  return page.type || 'manga'
+}
+
+function relatedLinks(page) {
+  const type = pageType(page)
+  const links = type === 'novel'
+    ? [
+        ['/ranking/novel', '小説人気ランキング30選'],
+        ['/theme/novel/mystery', 'ミステリー小説'],
+        ['/theme/novel/romance', '恋愛小説'],
+        ['/guide/novel/college', '大学生におすすめの小説'],
+      ]
+    : [
+        ['/ranking/manga', '漫画人気ランキング30選'],
+        ['/theme/manga/romance', '恋愛漫画'],
+        ['/theme/manga/fantasy', 'ファンタジー漫画'],
+        ['/guide/manga/college', '大学生におすすめの漫画'],
+      ]
+  return links.filter(([href]) => href !== `/${page.path}`)
+}
+
 function staticSeoPages() {
   return {
     name: 'yomipic-static-seo-pages',
@@ -89,6 +117,46 @@ function staticSeoPages() {
 
       for (const page of seoPages) {
         const url = `https://yomipic.vercel.app/${page.path}`
+        const items = staticSeoItems[page.path] || []
+        const breadcrumbLabel = page.title.replace(/｜ヨミピク$/, '')
+        const jsonLd = [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: page.title,
+            description: page.description,
+            url,
+            dateModified: '2026-10-06',
+            isPartOf: {
+              '@type': 'WebSite',
+              name: 'ヨミピク',
+              url: 'https://yomipic.vercel.app/',
+            },
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'ヨミピク', item: 'https://yomipic.vercel.app/' },
+              { '@type': 'ListItem', position: 2, name: breadcrumbLabel, item: url },
+            ],
+          },
+        ]
+
+        if (items.length) {
+          jsonLd.push({
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: breadcrumbLabel,
+            numberOfItems: items.length,
+            itemListElement: items.map(([title, author], index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: author ? `${title}（${author}）` : title,
+            })),
+          })
+        }
+
         let html = baseHtml
           .replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(page.title)}</title>`)
           .replace(/<meta\s+name="description"[\s\S]*?\/>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`)
@@ -100,30 +168,38 @@ function staticSeoPages() {
 
         html = html.replace(
           '</head>',
-          `    <link rel="canonical" href="${url}" />\n    <script type="application/ld+json">${JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebPage',
-            name: page.title,
-            description: page.description,
-            url,
-            isPartOf: {
-              '@type': 'WebSite',
-              name: 'ヨミピク',
-              url: 'https://yomipic.vercel.app/',
-            },
-          }).replaceAll('<', '\\u003c')}</script>\n  </head>`
+          `    <link rel="canonical" href="${url}" />\n${jsonLd.map((data) => `    <script type="application/ld+json">${JSON.stringify(data).replaceAll('<', '\\u003c')}</script>`).join('\n')}\n  </head>`
         )
 
-        const fallbackTitle = page.title.replace(/｜ヨミピク$/, '')
+        const fallbackTitle = breadcrumbLabel
+        const listTitle = page.path.startsWith('ranking/')
+          ? '30位までの掲載作品'
+          : page.path.startsWith('series/')
+            ? 'この作品とあわせて探す'
+            : 'この特集で紹介している作品'
+        const itemList = items.length
+          ? `<section style="margin-top:36px"><h2 style="font-size:22px;margin:0 0 16px">${escapeHtml(listTitle)}</h2><ol style="margin:0;padding-left:24px;display:grid;gap:10px;line-height:1.7">${items.map(([title, author]) => `<li><strong>${escapeHtml(title)}</strong>${author ? ` <span style="color:#756d80">— ${escapeHtml(author)}</span>` : ''}</li>`).join('')}</ol></section>`
+          : ''
+        const related = relatedLinks(page)
+          .map(([href, label]) => `<a href="${href}" style="display:inline-block;color:#6d28d9;font-weight:700;margin:0 14px 10px 0">${escapeHtml(label)}</a>`)
+          .join('')
+        const extraCopy = page.path.startsWith('ranking/')
+          ? 'ヨミピクでは巻ごとではなく作品タイトル単位でまとめています。公開されている人気情報を初期の参考にしながら、サイト内の「読みたい」や感想の反応もランキングに加えています。'
+          : page.path.startsWith('series/')
+            ? '作品への感想や評価、「読みたい」の反応をシリーズ単位で確認できます。次に読む候補は、同じ種類のランキングやテーマ特集からも探せます。'
+            : '作品名だけでなく、ヨミピク内の感想や「読みたい」の反応も見ながら、今の気分に合う次の一冊を探せます。'
+
         const fallback = `
-          <main style="max-width:900px;margin:0 auto;padding:64px 24px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#211b2a">
+          <main style="max-width:920px;margin:0 auto;padding:56px 24px 80px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#211b2a">
             <p style="margin:0 0 10px;color:#7c3aed;font-weight:800;font-size:13px">ヨミピク</p>
             <h1 style="margin:0 0 18px;font-size:clamp(32px,6vw,54px);line-height:1.2">${escapeHtml(fallbackTitle)}</h1>
-            <p style="margin:0;max-width:760px;color:#6f6878;line-height:1.9;font-size:15px">${escapeHtml(page.description)}</p>
-            <nav style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
-              <a href="/" style="color:#7c3aed;font-weight:700">ヨミピクトップ</a>
-              <a href="/ranking/manga" style="color:#7c3aed;font-weight:700">漫画ランキング</a>
-              <a href="/ranking/novel" style="color:#7c3aed;font-weight:700">小説ランキング</a>
+            <p style="margin:0;max-width:800px;color:#625b6c;line-height:1.9;font-size:15px">${escapeHtml(page.description)}</p>
+            <p style="margin:14px 0 0;max-width:800px;color:#625b6c;line-height:1.9;font-size:15px">${escapeHtml(extraCopy)}</p>
+            ${itemList}
+            <nav aria-label="関連ページ" style="margin-top:38px;padding-top:22px;border-top:1px solid #e9e4ef">
+              <strong style="display:block;margin-bottom:12px">関連ページ</strong>
+              ${related}
+              <a href="/" style="display:inline-block;color:#6d28d9;font-weight:700;margin:0 14px 10px 0">ヨミピクトップ</a>
             </nav>
           </main>`
         html = html.replace('<div id="root"></div>', `<div id="root">${fallback}</div>`)
