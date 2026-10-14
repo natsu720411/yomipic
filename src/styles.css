@@ -1279,3 +1279,34 @@ footer small { font-size: 10px; }
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Completed manga search landing page */
+.completed-guide-section {
+  margin-top: 32px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fff 0%, #fbf8ff 100%);
+}
+.completed-guide-head h2 { margin: 7px 0 8px; font-size: clamp(25px, 4vw, 36px); letter-spacing: -.04em; }
+.completed-guide-head p { margin: 0; max-width: 760px; color: #706879; font-size: 12px; line-height: 1.8; }
+.completed-pick-grid { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.completed-pick-card { min-width: 0; position: relative; display: grid; grid-template-columns: 38px 1fr auto; gap: 11px; align-items: start; padding: 15px; border: 1px solid #e5dfeb; border-radius: 15px; background: white; }
+.completed-pick-card:hover { border-color: #c9b5e8; box-shadow: 0 9px 24px rgba(66, 42, 96, .07); }
+.completed-pick-rank { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: #f2ebff; color: var(--purple); font-size: 11px; font-weight: 900; }
+.completed-pick-card > div { min-width: 0; }
+.completed-pick-card small { display: block; margin-bottom: 3px; color: var(--purple); font-size: 9px; font-weight: 900; }
+.completed-pick-card strong { display: block; color: var(--ink); font-size: 13px; line-height: 1.45; }
+.completed-pick-card > div > span { display: block; margin-top: 2px; color: #91899b; font-size: 9px; }
+.completed-pick-card p { margin: 7px 0 0; color: #71697b; font-size: 10px; line-height: 1.65; }
+.completed-pick-card > svg { margin-top: 9px; color: #a297ae; }
+.completed-guide-links { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.completed-guide-links strong { margin-right: 4px; color: #5e5669; font-size: 10px; }
+.completed-guide-links a { padding: 8px 10px; border: 1px solid #ddd4e8; border-radius: 999px; background: white; color: #675f70; font-size: 10px; font-weight: 800; }
+.completed-guide-links a:hover { color: var(--purple); border-color: #c7b3e8; }
+@media (max-width: 700px) {
+  .completed-guide-section { margin-top: 24px; padding: 20px 14px; }
+  .completed-pick-grid { grid-template-columns: 1fr; }
+  .completed-pick-card { padding: 13px; }
+}

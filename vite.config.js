@@ -61,7 +61,7 @@ const seoPages = [
   { path: 'theme/novel/sf', title: 'SF小説おすすめ・人気作品｜ヨミピク', description: '宇宙、未来、科学をテーマにした国内外の人気SF小説・定番作品を紹介します。' },
   { path: 'theme/novel/horror', title: 'ホラー小説おすすめ・人気作品｜ヨミピク', description: '怪談、心理恐怖、異常な日常を描く人気ホラー小説・定番作品を紹介します。' },
   { path: 'theme/novel/historical', title: '歴史小説おすすめ・人気作品｜ヨミピク', description: '戦国・幕末など歴史の人物や時代を描いた人気の歴史小説・定番作品を紹介します。' },
-  { path: 'guide/manga/completed', title: '完結漫画おすすめ｜最後まで読める人気作品｜ヨミピク', description: '最後までまとめて読める、完結済みの定番漫画を中心に紹介。感想や「読みたい」数も見ながら選べます。' },
+  { path: 'guide/manga/completed', title: '完結漫画おすすめ30選｜名作・一気読みしたい人気作品【2026年】｜ヨミピク', description: '完結漫画のおすすめ30作品を厳選。王道バトル、スポーツ、恋愛、ミステリーなど、最後まで一気読みできる名作・人気漫画をジャンル横断で紹介します。', modified: '2026-10-14' },
   { path: 'guide/manga/binge', title: '一気読みしたい漫画おすすめ｜ヨミピク', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を中心に紹介します。' },
   { path: 'guide/manga/college', title: '大学生におすすめの漫画｜ヨミピク', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を紹介します。' },
   { path: 'guide/manga/short', title: '短く読める漫画おすすめ｜少ない巻数・短編作品｜ヨミピク', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を紹介します。' },
@@ -126,7 +126,7 @@ function staticSeoPages() {
             name: page.title,
             description: page.description,
             url,
-            dateModified: '2026-10-06',
+            dateModified: page.modified || '2026-10-06',
             isPartOf: {
               '@type': 'WebSite',
               name: 'ヨミピク',
@@ -172,18 +172,22 @@ function staticSeoPages() {
         )
 
         const fallbackTitle = breadcrumbLabel
-        const listTitle = page.path.startsWith('ranking/')
+        const listTitle = page.path === 'guide/manga/completed'
+          ? '完結漫画おすすめ30選'
+          : page.path.startsWith('ranking/')
           ? '30位までの掲載作品'
           : page.path.startsWith('series/')
             ? 'この作品とあわせて探す'
             : 'この特集で紹介している作品'
         const itemList = items.length
-          ? `<section style="margin-top:36px"><h2 style="font-size:22px;margin:0 0 16px">${escapeHtml(listTitle)}</h2><ol style="margin:0;padding-left:24px;display:grid;gap:10px;line-height:1.7">${items.map(([title, author]) => `<li><strong>${escapeHtml(title)}</strong>${author ? ` <span style="color:#756d80">— ${escapeHtml(author)}</span>` : ''}</li>`).join('')}</ol></section>`
+          ? `<section style="margin-top:36px"><h2 style="font-size:22px;margin:0 0 16px">${escapeHtml(listTitle)}</h2><ol style="margin:0;padding-left:24px;display:grid;gap:10px;line-height:1.7">${items.map(([title, author, note]) => `<li><strong>${escapeHtml(title)}</strong>${author ? ` <span style="color:#756d80">— ${escapeHtml(author)}</span>` : ''}${note ? `<div style="margin-top:3px;color:#756d80;font-size:13px">${escapeHtml(note)}</div>` : ''}</li>`).join('')}</ol></section>`
           : ''
         const related = relatedLinks(page)
           .map(([href, label]) => `<a href="${href}" style="display:inline-block;color:#6d28d9;font-weight:700;margin:0 14px 10px 0">${escapeHtml(label)}</a>`)
           .join('')
-        const extraCopy = page.path.startsWith('ranking/')
+        const extraCopy = page.path === 'guide/manga/completed'
+          ? '完結漫画は最終話まで待たずに読めるのが魅力です。短く読み切れる作品から長編の名作まで、バトル・スポーツ・恋愛・ミステリーなど幅広いジャンルから30作品を選びました。完結漫画のおすすめやランキングを探しているときの候補選びに使えます。'
+          : page.path.startsWith('ranking/')
           ? 'ヨミピクでは巻ごとではなく作品タイトル単位でまとめています。公開されている人気情報を初期の参考にしながら、サイト内の「読みたい」や感想の反応もランキングに加えています。'
           : page.path.startsWith('series/')
             ? '作品への感想や評価、「読みたい」の反応をシリーズ単位で確認できます。次に読む候補は、同じ種類のランキングやテーマ特集からも探せます。'

@@ -51,6 +51,7 @@ function detailUrl(row) {
 }
 
 const STATIC_LASTMOD = '2026-10-06'
+const landingLastmod = (path) => path === '/guide/manga/completed' ? '2026-10-14' : STATIC_LASTMOD
 
 const staticSeriesPages = [
   ['manga', 'キングダム'],
@@ -136,7 +137,7 @@ export default async function handler(req, res) {
 
     const urls = [
       urlEntry('https://yomipic.vercel.app/', { lastmod: STATIC_LASTMOD, changefreq: 'weekly', priority: '1.0' }),
-      ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: STATIC_LASTMOD, priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
+      ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: landingLastmod(path), priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
       ...staticSeriesPages.map((path) => urlEntry(landingUrl(path), { lastmod: STATIC_LASTMOD, priority: '0.8' })),
       ...[...detailPages.entries()].filter(([url]) => !staticSeriesPages.some((path) => landingUrl(path) === url)).map(([url, date]) =>
         urlEntry(url, { lastmod: date ? date.toISOString().slice(0, 10) : undefined, priority: '0.7' })

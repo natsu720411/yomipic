@@ -64,7 +64,7 @@ const popularSeries = [
 ]
 
 const intentGuides = [
-  { slug: 'completed', label: '完結漫画', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後までまとめて読める、完結済みの定番漫画を中心に選びました。' },
+  { slug: 'completed', label: '完結漫画おすすめ30選', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後まで読める完結済み漫画から、王道バトル・スポーツ・恋愛・ミステリーまで一気読みしたい名作30作品を厳選しました。' },
   { slug: 'binge', label: '一気読みしたい漫画', query: '一気読み漫画', type: 'manga', emoji: '📚', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を集めました。' },
   { slug: 'college', label: '大学生におすすめ漫画', query: '大学生漫画', type: 'manga', emoji: '🎓', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を選びました。' },
   { slug: 'short', label: '短く読める漫画', query: '短編漫画', type: 'manga', emoji: '⏱️', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を集めました。' },
@@ -72,6 +72,40 @@ const intentGuides = [
   { slug: 'binge', label: '一気読みしたい小説', query: '一気読み小説', type: 'novel', emoji: '⚡', description: '展開が気になり、ページをめくる手が止まりにくい小説を中心に集めました。' },
   { slug: 'college', label: '大学生におすすめ小説', query: '大学生小説', type: 'novel', emoji: '🎒', description: '青春、将来、人間関係、自分らしさなど、大学生が共感しやすい小説を選びました。' },
   { slug: 'short', label: '短く読める小説', query: '短編小説', type: 'novel', emoji: '☕', description: '短編集や比較的コンパクトな作品を中心に、すきま時間でも楽しみやすい小説を集めました。' },
+
+]
+
+const completedMangaPicks = [
+  { title: "鋼の錬金術師", author: "荒川弘", category: "王道ファンタジー", note: "伏線と成長を最後まで楽しみたい人に。" },
+  { title: "進撃の巨人", author: "諫山創", category: "ダークファンタジー", note: "壮大な謎と伏線を一気に回収したい人に。" },
+  { title: "SLAM DUNK", author: "井上雄彦", category: "スポーツ", note: "熱い青春と試合の緊張感を味わえる定番。" },
+  { title: "ハイキュー!!", author: "古舘春一", category: "スポーツ", note: "チームの成長と青春を最後まで追える名作。" },
+  { title: "鬼滅の刃", author: "吾峠呼世晴", category: "バトル", note: "家族と仲間の物語をテンポよく読み進めたい人に。" },
+  { title: "呪術廻戦", author: "芥見下々", category: "バトル", note: "緊張感のある戦いとダークな世界観が好きな人に。" },
+  { title: "僕のヒーローアカデミア", author: "堀越耕平", category: "ヒーロー", note: "成長と王道ヒーロー物語をまとめて楽しめる。" },
+  { title: "NARUTO―ナルト―", author: "岸本斉史", category: "バトル", note: "友情と成長を軸にした長編王道漫画。" },
+  { title: "BLEACH", author: "久保帯人", category: "バトル", note: "スタイリッシュな能力バトルを長く楽しみたい人に。" },
+  { title: "銀魂", author: "空知英秋", category: "コメディ", note: "笑いとシリアスの振れ幅を楽しめる長編。" },
+  { title: "ゴールデンカムイ", author: "野田サトル", category: "冒険・歴史", note: "冒険、歴史、グルメ、笑いが詰まった一気読み向け。" },
+  { title: "DEATH NOTE", author: "大場つぐみ・小畑健", category: "サスペンス", note: "頭脳戦を短めの巻数で濃く楽しみたい人に。" },
+  { title: "寄生獣", author: "岩明均", category: "SF・サスペンス", note: "人間とは何かを考えさせる読み応えのある名作。" },
+  { title: "ダンジョン飯", author: "九井諒子", category: "ファンタジー", note: "世界観と伏線を最後まで味わえる異色ファンタジー。" },
+  { title: "Dr.STONE", author: "稲垣理一郎・Boichi", category: "SF・冒険", note: "科学と冒険をテンポよく楽しみたい人に。" },
+  { title: "四月は君の嘘", author: "新川直司", category: "青春", note: "音楽と青春の感動作を最後まで読み切りたい人に。" },
+  { title: "約束のネバーランド", author: "白井カイウ・出水ぽすか", category: "サスペンス", note: "先が気になる展開で一気読みしやすい。" },
+  { title: "暗殺教室", author: "松井優征", category: "学園", note: "笑いと成長、卒業までをきれいに味わえる。" },
+  { title: "僕だけがいない街", author: "三部けい", category: "ミステリー", note: "比較的短く、謎の続きが気になる一気読み向け。" },
+  { title: "サマータイムレンダ", author: "田中靖規", category: "サスペンス", note: "ループと謎解きが好きな人におすすめ。" },
+  { title: "彼方のアストラ", author: "篠原健太", category: "SF", note: "短めの巻数で伏線回収まで楽しめる。" },
+  { title: "聲の形", author: "大今良時", category: "青春・人間ドラマ", note: "人との向き合い方を描く短めの感動作。" },
+  { title: "君に届け", author: "椎名軽穂", category: "恋愛", note: "王道の青春恋愛を結末まで見届けたい人に。" },
+  { title: "ちはやふる", author: "末次由紀", category: "青春・競技", note: "競技かるたと成長、恋をじっくり楽しめる。" },
+  { title: "かぐや様は告らせたい", author: "赤坂アカ", category: "ラブコメ", note: "笑える恋愛頭脳戦を最後まで楽しみたい人に。" },
+  { title: "のだめカンタービレ", author: "二ノ宮知子", category: "音楽・恋愛", note: "音楽と恋愛の両方を楽しめる人気作。" },
+  { title: "フルーツバスケット", author: "高屋奈月", category: "恋愛・人間ドラマ", note: "家族や心の傷を描く長く愛される完結作。" },
+  { title: "銀の匙 Silver Spoon", author: "荒川弘", category: "青春", note: "進路や働くことを考えながら楽しめる青春漫画。" },
+  { title: "モブサイコ100", author: "ONE", category: "成長・バトル", note: "能力バトルと主人公の成長を最後まで楽しめる。" },
+  { title: "チ。―地球の運動について―", author: "魚豊", category: "歴史・ドラマ", note: "全8巻で濃密なテーマと物語を味わえる。" },
 ]
 
 function rankingHref(type) {
@@ -743,8 +777,11 @@ export default function App() {
     const themeDescription = pageRoute.kind === 'theme' && pageRoute.topic
       ? `${pageRoute.topic.label}のおすすめ・定番作品を探せます。${pageRoute.topic.description} 感想や「読みたい」数もチェックできます。`
       : ''
+    const isCompletedMangaGuide = pageRoute.kind === 'guide' && pageRoute.guide?.type === 'manga' && pageRoute.guide?.slug === 'completed'
     const guideDescription = pageRoute.kind === 'guide' && pageRoute.guide
-      ? `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
+      ? isCompletedMangaGuide
+        ? '完結漫画のおすすめ30作品を厳選。王道バトル、スポーツ、恋愛、ミステリーなど、最後まで一気読みできる名作・人気漫画をジャンル横断で紹介します。'
+        : `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
       : ''
     const seriesName = detailWork?.seriesTitle || detailWork?.title || (pageRoute.kind === 'series' ? pageRoute.title : '')
     const seriesDescription = seriesName
@@ -762,7 +799,9 @@ export default function App() {
         : pageRoute.kind === 'theme' && pageRoute.topic
           ? `${pageRoute.topic.label}おすすめ・人気作品｜ヨミピク`
           : pageRoute.kind === 'guide' && pageRoute.guide
-            ? `${pageRoute.guide.label}｜おすすめ作品特集｜ヨミピク`
+            ? isCompletedMangaGuide
+              ? '完結漫画おすすめ30選｜名作・一気読みしたい人気作品【2026年】｜ヨミピク'
+              : `${pageRoute.guide.label}｜おすすめ作品特集｜ヨミピク`
             : pageRoute.kind === 'series' && pageRoute.title
               ? `${pageRoute.title}の感想・評価｜ヨミピク`
               : hasSearched && query
@@ -1299,10 +1338,17 @@ export default function App() {
                 <p>{pageRoute.topic.description} 感想や「読みたい」数も見ながら選べます。</p>
               </>
             ) : pageRoute.kind === 'guide' && pageRoute.guide ? (
-              <>
-                <h1>{pageRoute.guide.label}<br /><span>今の気分に合う一冊を。</span></h1>
-                <p>{pageRoute.guide.description} 感想や「読みたい」数も見ながら比較できます。</p>
-              </>
+              pageRoute.guide.type === 'manga' && pageRoute.guide.slug === 'completed' ? (
+                <>
+                  <h1>完結漫画おすすめ30選<br /><span>名作を最後まで一気読み。</span></h1>
+                  <p>完結済みの人気漫画から、王道バトル・スポーツ・恋愛・ミステリーまで厳選。次に読む完結漫画を探せます。</p>
+                </>
+              ) : (
+                <>
+                  <h1>{pageRoute.guide.label}<br /><span>今の気分に合う一冊を。</span></h1>
+                  <p>{pageRoute.guide.description} 感想や「読みたい」数も見ながら比較できます。</p>
+                </>
+              )
             ) : (
               <>
                 <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
@@ -1368,7 +1414,7 @@ export default function App() {
             <div className="section-top">
               <div>
                 <span className="section-kicker">BOOK DISCOVERY</span>
-                <h2>{searchPageLabel(query, type)}を探す</h2>
+                <h2>{pageRoute.kind === 'guide' && pageRoute.guide?.slug === 'completed' && pageRoute.guide?.type === 'manga' ? 'まず読みたい完結漫画8作品' : `${searchPageLabel(query, type)}を探す`}</h2>
                 <p className="search-intro">
                   {pageRoute.kind === 'theme' && pageRoute.topic
                     ? pageRoute.topic.description
@@ -1434,9 +1480,43 @@ export default function App() {
 
             {pageRoute.kind === 'guide' && pageRoute.guide && (
               <div className="theme-explainer">
-                <h3>{pageRoute.guide.label}の選び方</h3>
-                <p>{pageRoute.guide.description} ここでは定番作品を中心に並べ、シリーズ単位の感想や「読みたい」数も一緒に比較できます。</p>
+                <h3>{pageRoute.guide.type === 'manga' && pageRoute.guide.slug === 'completed' ? '完結漫画を選ぶポイント' : `${pageRoute.guide.label}の選び方`}</h3>
+                <p>{pageRoute.guide.type === 'manga' && pageRoute.guide.slug === 'completed'
+                  ? '完結漫画なら最終話まで待たずに読めるため、休日の一気読みや長編への挑戦にも向いています。短く読み切りたいなら10巻前後、じっくり浸りたいなら20巻以上を目安に、好きなジャンルから選ぶのがおすすめです。'
+                  : `${pageRoute.guide.description} ここでは定番作品を中心に並べ、シリーズ単位の感想や「読みたい」数も一緒に比較できます。`}</p>
               </div>
+            )}
+
+            {pageRoute.kind === 'guide' && pageRoute.guide?.type === 'manga' && pageRoute.guide?.slug === 'completed' && (
+              <section className="completed-guide-section" aria-labelledby="completed-30-title">
+                <div className="completed-guide-head">
+                  <span className="section-kicker">COMPLETE MANGA 30</span>
+                  <h2 id="completed-30-title">完結漫画おすすめ30選</h2>
+                  <p>名作・人気作をジャンル横断で紹介します。気になる作品名を押すと、ヨミピクの作品ページで感想や「読みたい」を確認できます。</p>
+                </div>
+                <div className="completed-pick-grid">
+                  {completedMangaPicks.map((work, index) => (
+                    <a key={work.title} href={seriesHref({ type: 'manga', title: work.title })} className="completed-pick-card">
+                      <span className="completed-pick-rank">{index + 1}</span>
+                      <div>
+                        <small>{work.category}</small>
+                        <strong>{work.title}</strong>
+                        <span>{work.author}</span>
+                        <p>{work.note}</p>
+                      </div>
+                      <ChevronRight size={17} />
+                    </a>
+                  ))}
+                </div>
+                <div className="completed-guide-links">
+                  <strong>ジャンルから完結漫画を探す</strong>
+                  <a href="/theme/manga/fantasy">✨ ファンタジー漫画</a>
+                  <a href="/theme/manga/sports">🏐 スポーツ漫画</a>
+                  <a href="/theme/manga/romance">💕 恋愛漫画</a>
+                  <a href="/theme/manga/mystery">🔎 ミステリー漫画</a>
+                  <a href="/ranking/manga">🏆 漫画人気ランキング30選</a>
+                </div>
+              </section>
             )}
 
             <nav className="related-searches" aria-label="関連ページ">
