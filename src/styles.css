@@ -1419,3 +1419,36 @@ footer small { font-size: 10px; }
   .completed-purpose-grid { grid-template-columns: 1fr; }
   .ranking-completed-link { margin-top: 14px; }
 }
+
+
+/* Completed manga volume counts */
+.completed-volume-basis {
+  margin-top: 8px !important;
+  color: #92899c !important;
+  font-size: 10px !important;
+}
+.completed-pick-meta {
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.completed-pick-meta small { margin: 0; }
+.completed-pick-meta b {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #efe7ff;
+  color: var(--purple);
+  font-size: 9px;
+  font-weight: 900;
+}
+.completed-volume-detail {
+  display: block;
+  margin-top: 6px;
+  color: #948b9d;
+  font-size: 8px;
+  line-height: 1.5;
+  font-style: normal;
+}

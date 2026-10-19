@@ -76,36 +76,36 @@ const intentGuides = [
 ]
 
 const completedMangaPicks = [
-  { title: "鋼の錬金術師", author: "荒川弘", category: "王道ファンタジー", note: "伏線と成長を最後まで楽しみたい人に。" },
-  { title: "進撃の巨人", author: "諫山創", category: "ダークファンタジー", note: "壮大な謎と伏線を一気に回収したい人に。" },
-  { title: "SLAM DUNK", author: "井上雄彦", category: "スポーツ", note: "熱い青春と試合の緊張感を味わえる定番。" },
-  { title: "ハイキュー!!", author: "古舘春一", category: "スポーツ", note: "チームの成長と青春を最後まで追える名作。" },
-  { title: "鬼滅の刃", author: "吾峠呼世晴", category: "バトル", note: "家族と仲間の物語をテンポよく読み進めたい人に。" },
-  { title: "呪術廻戦", author: "芥見下々", category: "バトル", note: "緊張感のある戦いとダークな世界観が好きな人に。" },
-  { title: "僕のヒーローアカデミア", author: "堀越耕平", category: "ヒーロー", note: "成長と王道ヒーロー物語をまとめて楽しめる。" },
-  { title: "NARUTO―ナルト―", author: "岸本斉史", category: "バトル", note: "友情と成長を軸にした長編王道漫画。" },
-  { title: "BLEACH", author: "久保帯人", category: "バトル", note: "スタイリッシュな能力バトルを長く楽しみたい人に。" },
-  { title: "銀魂", author: "空知英秋", category: "コメディ", note: "笑いとシリアスの振れ幅を楽しめる長編。" },
-  { title: "ゴールデンカムイ", author: "野田サトル", category: "冒険・歴史", note: "冒険、歴史、グルメ、笑いが詰まった一気読み向け。" },
-  { title: "DEATH NOTE", author: "大場つぐみ・小畑健", category: "サスペンス", note: "頭脳戦を短めの巻数で濃く楽しみたい人に。" },
-  { title: "寄生獣", author: "岩明均", category: "SF・サスペンス", note: "人間とは何かを考えさせる読み応えのある名作。" },
-  { title: "ダンジョン飯", author: "九井諒子", category: "ファンタジー", note: "世界観と伏線を最後まで味わえる異色ファンタジー。" },
-  { title: "Dr.STONE", author: "稲垣理一郎・Boichi", category: "SF・冒険", note: "科学と冒険をテンポよく楽しみたい人に。" },
-  { title: "四月は君の嘘", author: "新川直司", category: "青春", note: "音楽と青春の感動作を最後まで読み切りたい人に。" },
-  { title: "約束のネバーランド", author: "白井カイウ・出水ぽすか", category: "サスペンス", note: "先が気になる展開で一気読みしやすい。" },
-  { title: "暗殺教室", author: "松井優征", category: "学園", note: "笑いと成長、卒業までをきれいに味わえる。" },
-  { title: "僕だけがいない街", author: "三部けい", category: "ミステリー", note: "比較的短く、謎の続きが気になる一気読み向け。" },
-  { title: "サマータイムレンダ", author: "田中靖規", category: "サスペンス", note: "ループと謎解きが好きな人におすすめ。" },
-  { title: "彼方のアストラ", author: "篠原健太", category: "SF", note: "短めの巻数で伏線回収まで楽しめる。" },
-  { title: "聲の形", author: "大今良時", category: "青春・人間ドラマ", note: "人との向き合い方を描く短めの感動作。" },
-  { title: "君に届け", author: "椎名軽穂", category: "恋愛", note: "王道の青春恋愛を結末まで見届けたい人に。" },
-  { title: "ちはやふる", author: "末次由紀", category: "青春・競技", note: "競技かるたと成長、恋をじっくり楽しめる。" },
-  { title: "かぐや様は告らせたい", author: "赤坂アカ", category: "ラブコメ", note: "笑える恋愛頭脳戦を最後まで楽しみたい人に。" },
-  { title: "のだめカンタービレ", author: "二ノ宮知子", category: "音楽・恋愛", note: "音楽と恋愛の両方を楽しめる人気作。" },
-  { title: "フルーツバスケット", author: "高屋奈月", category: "恋愛・人間ドラマ", note: "家族や心の傷を描く長く愛される完結作。" },
-  { title: "銀の匙 Silver Spoon", author: "荒川弘", category: "青春", note: "進路や働くことを考えながら楽しめる青春漫画。" },
-  { title: "モブサイコ100", author: "ONE", category: "成長・バトル", note: "能力バトルと主人公の成長を最後まで楽しめる。" },
-  { title: "チ。―地球の運動について―", author: "魚豊", category: "歴史・ドラマ", note: "全8巻で濃密なテーマと物語を味わえる。" },
+  { title: "鋼の錬金術師", author: "荒川弘", category: "王道ファンタジー", note: "伏線と成長を最後まで楽しみたい人に。", volumes: "全27巻", volumeNote: "" },
+  { title: "進撃の巨人", author: "諫山創", category: "ダークファンタジー", note: "壮大な謎と伏線を一気に回収したい人に。", volumes: "全34巻", volumeNote: "" },
+  { title: "SLAM DUNK", author: "井上雄彦", category: "スポーツ", note: "熱い青春と試合の緊張感を味わえる定番。", volumes: "全31巻", volumeNote: "通常コミックス版" },
+  { title: "ハイキュー!!", author: "古舘春一", category: "スポーツ", note: "チームの成長と青春を最後まで追える名作。", volumes: "全45巻", volumeNote: "" },
+  { title: "鬼滅の刃", author: "吾峠呼世晴", category: "バトル", note: "家族と仲間の物語をテンポよく読み進めたい人に。", volumes: "全23巻", volumeNote: "" },
+  { title: "呪術廻戦", author: "芥見下々", category: "バトル", note: "緊張感のある戦いとダークな世界観が好きな人に。", volumes: "全30巻", volumeNote: "" },
+  { title: "僕のヒーローアカデミア", author: "堀越耕平", category: "ヒーロー", note: "成長と王道ヒーロー物語をまとめて楽しめる。", volumes: "全42巻", volumeNote: "" },
+  { title: "NARUTO―ナルト―", author: "岸本斉史", category: "バトル", note: "友情と成長を軸にした長編王道漫画。", volumes: "全72巻", volumeNote: "" },
+  { title: "BLEACH", author: "久保帯人", category: "バトル", note: "スタイリッシュな能力バトルを長く楽しみたい人に。", volumes: "全74巻", volumeNote: "" },
+  { title: "銀魂", author: "空知英秋", category: "コメディ", note: "笑いとシリアスの振れ幅を楽しめる長編。", volumes: "全77巻", volumeNote: "" },
+  { title: "ゴールデンカムイ", author: "野田サトル", category: "冒険・歴史", note: "冒険、歴史、グルメ、笑いが詰まった一気読み向け。", volumes: "全31巻", volumeNote: "" },
+  { title: "DEATH NOTE", author: "大場つぐみ・小畑健", category: "サスペンス", note: "頭脳戦を短めの巻数で濃く楽しみたい人に。", volumes: "全12巻", volumeNote: "本編コミックス" },
+  { title: "寄生獣", author: "岩明均", category: "SF・サスペンス", note: "人間とは何かを考えさせる読み応えのある名作。", volumes: "全10巻", volumeNote: "通常コミックス版" },
+  { title: "ダンジョン飯", author: "九井諒子", category: "ファンタジー", note: "世界観と伏線を最後まで味わえる異色ファンタジー。", volumes: "全14巻", volumeNote: "" },
+  { title: "Dr.STONE", author: "稲垣理一郎・Boichi", category: "SF・冒険", note: "科学と冒険をテンポよく楽しみたい人に。", volumes: "全27巻", volumeNote: "26巻で本編完結・27巻は続編エピソード" },
+  { title: "四月は君の嘘", author: "新川直司", category: "青春", note: "音楽と青春の感動作を最後まで読み切りたい人に。", volumes: "全11巻", volumeNote: "通常コミックス版" },
+  { title: "約束のネバーランド", author: "白井カイウ・出水ぽすか", category: "サスペンス", note: "先が気になる展開で一気読みしやすい。", volumes: "全20巻", volumeNote: "" },
+  { title: "暗殺教室", author: "松井優征", category: "学園", note: "笑いと成長、卒業までをきれいに味わえる。", volumes: "全21巻", volumeNote: "" },
+  { title: "僕だけがいない街", author: "三部けい", category: "ミステリー", note: "比較的短く、謎の続きが気になる一気読み向け。", volumes: "全9巻", volumeNote: "9巻は外伝" },
+  { title: "サマータイムレンダ", author: "田中靖規", category: "サスペンス", note: "ループと謎解きが好きな人におすすめ。", volumes: "全13巻", volumeNote: "" },
+  { title: "彼方のアストラ", author: "篠原健太", category: "SF", note: "短めの巻数で伏線回収まで楽しめる。", volumes: "全5巻", volumeNote: "" },
+  { title: "聲の形", author: "大今良時", category: "青春・人間ドラマ", note: "人との向き合い方を描く短めの感動作。", volumes: "全7巻", volumeNote: "" },
+  { title: "君に届け", author: "椎名軽穂", category: "恋愛", note: "王道の青春恋愛を結末まで見届けたい人に。", volumes: "全30巻", volumeNote: "本編" },
+  { title: "ちはやふる", author: "末次由紀", category: "青春・競技", note: "競技かるたと成長、恋をじっくり楽しめる。", volumes: "全50巻", volumeNote: "本編" },
+  { title: "かぐや様は告らせたい", author: "赤坂アカ", category: "ラブコメ", note: "笑える恋愛頭脳戦を最後まで楽しみたい人に。", volumes: "全28巻", volumeNote: "" },
+  { title: "のだめカンタービレ", author: "二ノ宮知子", category: "音楽・恋愛", note: "音楽と恋愛の両方を楽しめる人気作。", volumes: "全25巻", volumeNote: "通常コミックス版" },
+  { title: "フルーツバスケット", author: "高屋奈月", category: "恋愛・人間ドラマ", note: "家族や心の傷を描く長く愛される完結作。", volumes: "全23巻", volumeNote: "通常コミックス版" },
+  { title: "銀の匙 Silver Spoon", author: "荒川弘", category: "青春", note: "進路や働くことを考えながら楽しめる青春漫画。", volumes: "全15巻", volumeNote: "" },
+  { title: "モブサイコ100", author: "ONE", category: "成長・バトル", note: "能力バトルと主人公の成長を最後まで楽しめる。", volumes: "全16巻", volumeNote: "" },
+  { title: "チ。―地球の運動について―", author: "魚豊", category: "歴史・ドラマ", note: "濃密なテーマと物語を短い巻数で味わえる。", volumes: "全8巻", volumeNote: "" },
 ]
 
 const completedMangaGroups = [
@@ -803,7 +803,7 @@ export default function App() {
     const isCompletedMangaGuide = pageRoute.kind === 'guide' && pageRoute.guide?.type === 'manga' && pageRoute.guide?.slug === 'completed'
     const guideDescription = pageRoute.kind === 'guide' && pageRoute.guide
       ? isCompletedMangaGuide
-        ? '完結漫画のおすすめランキング30作品を紹介。名作、一気読みしやすい作品、比較的短く読める作品、恋愛・青春など目的別にも探せます。掲載順はヨミピク独自のおすすめ順です。'
+        ? '完結漫画のおすすめランキング30作品を、全巻数つきで紹介。名作、一気読みしやすい作品、比較的短く読める作品、恋愛・青春など目的別にも探せます。掲載順はヨミピク独自のおすすめ順です。'
         : `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
       : ''
     const seriesName = detailWork?.seriesTitle || detailWork?.title || (pageRoute.kind === 'series' ? pageRoute.title : '')
@@ -1516,16 +1516,21 @@ export default function App() {
                   <span className="section-kicker">COMPLETE MANGA 30</span>
                   <h2 id="completed-30-title">完結漫画おすすめランキング30選</h2>
                   <p>完結済みの名作・人気作をジャンル横断で30作品紹介します。掲載順は売上順位ではなく、定番度・一気読みしやすさ・ジャンルのバランスを考えたヨミピク独自のおすすめ順です。</p>
+                  <p className="completed-volume-basis">巻数は原則として通常コミックス版を基準にしています。新装版・愛蔵版・文庫版などは巻数が異なる場合があります。</p>
                 </div>
                 <div className="completed-pick-grid">
                   {completedMangaPicks.map((work, index) => (
                     <a key={work.title} href={seriesHref({ type: 'manga', title: work.title })} className="completed-pick-card">
                       <span className="completed-pick-rank">{index + 1}</span>
                       <div>
-                        <small>{work.category}</small>
+                        <div className="completed-pick-meta">
+                          <small>{work.category}</small>
+                          <b>{work.volumes}</b>
+                        </div>
                         <strong>{work.title}</strong>
                         <span>{work.author}</span>
                         <p>{work.note}</p>
+                        {work.volumeNote && <em className="completed-volume-detail">※ {work.volumeNote}</em>}
                       </div>
                       <ChevronRight size={17} />
                     </a>
@@ -1552,15 +1557,15 @@ export default function App() {
                   <h3 id="completed-faq-title">完結漫画選びのよくある疑問</h3>
                   <details>
                     <summary>完結漫画でまず読むなら、どんな作品がおすすめ？</summary>
-                    <p>王道から選ぶなら『鋼の錬金術師』『進撃の巨人』『SLAM DUNK』『ハイキュー!!』など、物語の結末まで評価され続けている定番作から探すと選びやすいです。</p>
+                    <p>王道から選ぶなら『鋼の錬金術師』（全27巻）、『進撃の巨人』（全34巻）、『SLAM DUNK』（通常コミックス全31巻）、『ハイキュー!!』（全45巻）などから探すと選びやすいです。</p>
                   </details>
                   <details>
                     <summary>一気読みしやすい完結漫画は？</summary>
-                    <p>謎や続きが気になる作品なら『DEATH NOTE』『約束のネバーランド』『僕だけがいない街』『サマータイムレンダ』などが候補です。</p>
+                    <p>謎や続きが気になる作品なら『DEATH NOTE』（全12巻）、『約束のネバーランド』（全20巻）、『僕だけがいない街』（全9巻・9巻は外伝）、『サマータイムレンダ』（全13巻）などが候補です。</p>
                   </details>
                   <details>
                     <summary>比較的短く読み切りやすい完結漫画は？</summary>
-                    <p>長編を避けたいときは『彼方のアストラ』『聲の形』『チ。―地球の運動について―』『僕だけがいない街』など、比較的コンパクトな作品から探すのがおすすめです。</p>
+                    <p>長編を避けたいときは『彼方のアストラ』（全5巻）、『聲の形』（全7巻）、『チ。―地球の運動について―』（全8巻）、『僕だけがいない街』（全9巻・9巻は外伝）など、比較的コンパクトな作品から探すのがおすすめです。</p>
                   </details>
                 </section>
 
