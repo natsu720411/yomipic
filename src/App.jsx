@@ -64,7 +64,7 @@ const popularSeries = [
 ]
 
 const intentGuides = [
-  { slug: 'completed', label: '完結漫画おすすめ30選', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後まで読める完結済み漫画から、王道バトル・スポーツ・恋愛・ミステリーまで一気読みしたい名作30作品を厳選しました。' },
+  { slug: 'completed', label: '完結漫画おすすめランキング30選', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後まで読める完結済み漫画から、王道バトル・スポーツ・恋愛・ミステリーまで一気読みしたい名作30作品を厳選しました。' },
   { slug: 'binge', label: '一気読みしたい漫画', query: '一気読み漫画', type: 'manga', emoji: '📚', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を集めました。' },
   { slug: 'college', label: '大学生におすすめ漫画', query: '大学生漫画', type: 'manga', emoji: '🎓', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を選びました。' },
   { slug: 'short', label: '短く読める漫画', query: '短編漫画', type: 'manga', emoji: '⏱️', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を集めました。' },
@@ -106,6 +106,29 @@ const completedMangaPicks = [
   { title: "銀の匙 Silver Spoon", author: "荒川弘", category: "青春", note: "進路や働くことを考えながら楽しめる青春漫画。" },
   { title: "モブサイコ100", author: "ONE", category: "成長・バトル", note: "能力バトルと主人公の成長を最後まで楽しめる。" },
   { title: "チ。―地球の運動について―", author: "魚豊", category: "歴史・ドラマ", note: "全8巻で濃密なテーマと物語を味わえる。" },
+]
+
+const completedMangaGroups = [
+  {
+    title: 'まず読みたい名作完結漫画',
+    description: '王道の人気作や、読み終えたあとまで印象に残りやすい作品から選びたい人向け。',
+    titles: ['鋼の錬金術師', '進撃の巨人', 'SLAM DUNK', 'ハイキュー!!', '鬼滅の刃', 'NARUTO―ナルト―'],
+  },
+  {
+    title: '一気読みしたい完結漫画',
+    description: '謎や続きが気になり、テンポよくページを進めたい人向け。',
+    titles: ['DEATH NOTE', '約束のネバーランド', '僕だけがいない街', 'サマータイムレンダ', '彼方のアストラ', 'ゴールデンカムイ'],
+  },
+  {
+    title: '比較的短く読み切りやすい完結漫画',
+    description: '長編よりも、まずはまとまった物語を読み切りたい人向け。',
+    titles: ['彼方のアストラ', '聲の形', 'チ。―地球の運動について―', '僕だけがいない街', '寄生獣', '四月は君の嘘'],
+  },
+  {
+    title: '恋愛・青春を楽しめる完結漫画',
+    description: '恋愛や成長、人間関係をじっくり味わいたい人向け。',
+    titles: ['君に届け', 'ちはやふる', 'かぐや様は告らせたい', 'のだめカンタービレ', 'フルーツバスケット', '銀の匙 Silver Spoon'],
+  },
 ]
 
 function rankingHref(type) {
@@ -780,7 +803,7 @@ export default function App() {
     const isCompletedMangaGuide = pageRoute.kind === 'guide' && pageRoute.guide?.type === 'manga' && pageRoute.guide?.slug === 'completed'
     const guideDescription = pageRoute.kind === 'guide' && pageRoute.guide
       ? isCompletedMangaGuide
-        ? '完結漫画のおすすめ30作品を厳選。王道バトル、スポーツ、恋愛、ミステリーなど、最後まで一気読みできる名作・人気漫画をジャンル横断で紹介します。'
+        ? '完結漫画のおすすめランキング30作品を紹介。名作、一気読みしやすい作品、比較的短く読める作品、恋愛・青春など目的別にも探せます。掲載順はヨミピク独自のおすすめ順です。'
         : `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
       : ''
     const seriesName = detailWork?.seriesTitle || detailWork?.title || (pageRoute.kind === 'series' ? pageRoute.title : '')
@@ -800,7 +823,7 @@ export default function App() {
           ? `${pageRoute.topic.label}おすすめ・人気作品｜ヨミピク`
           : pageRoute.kind === 'guide' && pageRoute.guide
             ? isCompletedMangaGuide
-              ? '完結漫画おすすめ30選｜名作・一気読みしたい人気作品【2026年】｜ヨミピク'
+              ? '完結漫画おすすめランキング30選｜一気読みできる名作・人気作品【2026年】｜ヨミピク'
               : `${pageRoute.guide.label}｜おすすめ作品特集｜ヨミピク`
             : pageRoute.kind === 'series' && pageRoute.title
               ? `${pageRoute.title}の感想・評価｜ヨミピク`
@@ -1340,7 +1363,7 @@ export default function App() {
             ) : pageRoute.kind === 'guide' && pageRoute.guide ? (
               pageRoute.guide.type === 'manga' && pageRoute.guide.slug === 'completed' ? (
                 <>
-                  <h1>完結漫画おすすめ30選<br /><span>名作を最後まで一気読み。</span></h1>
+                  <h1>完結漫画おすすめランキング30選<br /><span>名作を最後まで一気読み。</span></h1>
                   <p>完結済みの人気漫画から、王道バトル・スポーツ・恋愛・ミステリーまで厳選。次に読む完結漫画を探せます。</p>
                 </>
               ) : (
@@ -1491,8 +1514,8 @@ export default function App() {
               <section className="completed-guide-section" aria-labelledby="completed-30-title">
                 <div className="completed-guide-head">
                   <span className="section-kicker">COMPLETE MANGA 30</span>
-                  <h2 id="completed-30-title">完結漫画おすすめ30選</h2>
-                  <p>名作・人気作をジャンル横断で紹介します。気になる作品名を押すと、ヨミピクの作品ページで感想や「読みたい」を確認できます。</p>
+                  <h2 id="completed-30-title">完結漫画おすすめランキング30選</h2>
+                  <p>完結済みの名作・人気作をジャンル横断で30作品紹介します。掲載順は売上順位ではなく、定番度・一気読みしやすさ・ジャンルのバランスを考えたヨミピク独自のおすすめ順です。</p>
                 </div>
                 <div className="completed-pick-grid">
                   {completedMangaPicks.map((work, index) => (
@@ -1508,6 +1531,39 @@ export default function App() {
                     </a>
                   ))}
                 </div>
+                <section className="completed-purpose-section" aria-labelledby="completed-purpose-title">
+                  <h3 id="completed-purpose-title">目的別に完結漫画を探す</h3>
+                  <div className="completed-purpose-grid">
+                    {completedMangaGroups.map((group) => (
+                      <article key={group.title}>
+                        <h4>{group.title}</h4>
+                        <p>{group.description}</p>
+                        <div>
+                          {group.titles.map((title) => (
+                            <a key={title} href={seriesHref({ type: 'manga', title })}>{title}</a>
+                          ))}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="completed-faq" aria-labelledby="completed-faq-title">
+                  <h3 id="completed-faq-title">完結漫画選びのよくある疑問</h3>
+                  <details>
+                    <summary>完結漫画でまず読むなら、どんな作品がおすすめ？</summary>
+                    <p>王道から選ぶなら『鋼の錬金術師』『進撃の巨人』『SLAM DUNK』『ハイキュー!!』など、物語の結末まで評価され続けている定番作から探すと選びやすいです。</p>
+                  </details>
+                  <details>
+                    <summary>一気読みしやすい完結漫画は？</summary>
+                    <p>謎や続きが気になる作品なら『DEATH NOTE』『約束のネバーランド』『僕だけがいない街』『サマータイムレンダ』などが候補です。</p>
+                  </details>
+                  <details>
+                    <summary>比較的短く読み切りやすい完結漫画は？</summary>
+                    <p>長編を避けたいときは『彼方のアストラ』『聲の形』『チ。―地球の運動について―』『僕だけがいない街』など、比較的コンパクトな作品から探すのがおすすめです。</p>
+                  </details>
+                </section>
+
                 <div className="completed-guide-links">
                   <strong>ジャンルから完結漫画を探す</strong>
                   <a href="/theme/manga/fantasy">✨ ファンタジー漫画</a>
@@ -1661,6 +1717,13 @@ export default function App() {
                 <a key={`guide-${topic.type}-${topic.slug}`} href={topicHref(topic)}>{topic.emoji} {topic.label}</a>
               ))}
             </div>
+            {type === 'manga' && (
+              <a className="ranking-completed-link" href="/guide/manga/completed">
+                <span>✅ 完結作品から選びたい人へ</span>
+                <strong>完結漫画おすすめランキング30選を見る</strong>
+                <ChevronRight size={18} />
+              </a>
+            )}
           </section>
         )}
 

@@ -51,7 +51,7 @@ function detailUrl(row) {
 }
 
 const STATIC_LASTMOD = '2026-10-06'
-const landingLastmod = (path) => path === '/guide/manga/completed' ? '2026-10-14' : STATIC_LASTMOD
+const landingLastmod = (path) => path === '/guide/manga/completed' ? '2026-10-20' : STATIC_LASTMOD
 
 const staticSeriesPages = [
   ['manga', 'キングダム'],

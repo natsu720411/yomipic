@@ -61,7 +61,7 @@ const seoPages = [
   { path: 'theme/novel/sf', title: 'SF小説おすすめ・人気作品｜ヨミピク', description: '宇宙、未来、科学をテーマにした国内外の人気SF小説・定番作品を紹介します。' },
   { path: 'theme/novel/horror', title: 'ホラー小説おすすめ・人気作品｜ヨミピク', description: '怪談、心理恐怖、異常な日常を描く人気ホラー小説・定番作品を紹介します。' },
   { path: 'theme/novel/historical', title: '歴史小説おすすめ・人気作品｜ヨミピク', description: '戦国・幕末など歴史の人物や時代を描いた人気の歴史小説・定番作品を紹介します。' },
-  { path: 'guide/manga/completed', title: '完結漫画おすすめ30選｜名作・一気読みしたい人気作品【2026年】｜ヨミピク', description: '完結漫画のおすすめ30作品を厳選。王道バトル、スポーツ、恋愛、ミステリーなど、最後まで一気読みできる名作・人気漫画をジャンル横断で紹介します。', modified: '2026-10-14' },
+  { path: 'guide/manga/completed', title: '完結漫画おすすめランキング30選｜一気読みできる名作・人気作品【2026年】｜ヨミピク', description: '完結漫画のおすすめランキング30作品を紹介。名作、一気読みしやすい作品、比較的短く読める作品、恋愛・青春など目的別にも探せます。掲載順はヨミピク独自のおすすめ順です。', modified: '2026-10-20' },
   { path: 'guide/manga/binge', title: '一気読みしたい漫画おすすめ｜ヨミピク', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を中心に紹介します。' },
   { path: 'guide/manga/college', title: '大学生におすすめの漫画｜ヨミピク', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を紹介します。' },
   { path: 'guide/manga/short', title: '短く読める漫画おすすめ｜少ない巻数・短編作品｜ヨミピク', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を紹介します。' },
@@ -97,6 +97,7 @@ function relatedLinks(page) {
       ]
     : [
         ['/ranking/manga', '漫画人気ランキング30選'],
+        ['/guide/manga/completed', '完結漫画おすすめランキング30選'],
         ['/theme/manga/romance', '恋愛漫画'],
         ['/theme/manga/fantasy', 'ファンタジー漫画'],
         ['/guide/manga/college', '大学生におすすめの漫画'],
@@ -173,7 +174,7 @@ function staticSeoPages() {
 
         const fallbackTitle = breadcrumbLabel
         const listTitle = page.path === 'guide/manga/completed'
-          ? '完結漫画おすすめ30選'
+          ? '完結漫画おすすめランキング30選'
           : page.path.startsWith('ranking/')
           ? '30位までの掲載作品'
           : page.path.startsWith('series/')
@@ -186,12 +187,32 @@ function staticSeoPages() {
           .map(([href, label]) => `<a href="${href}" style="display:inline-block;color:#6d28d9;font-weight:700;margin:0 14px 10px 0">${escapeHtml(label)}</a>`)
           .join('')
         const extraCopy = page.path === 'guide/manga/completed'
-          ? '完結漫画は最終話まで待たずに読めるのが魅力です。短く読み切れる作品から長編の名作まで、バトル・スポーツ・恋愛・ミステリーなど幅広いジャンルから30作品を選びました。完結漫画のおすすめやランキングを探しているときの候補選びに使えます。'
+          ? '完結漫画は最終話まで待たずに読めるのが魅力です。名作、一気読みしやすい作品、比較的短く読み切りやすい作品、恋愛・青春作品など幅広いジャンルから30作品を掲載しています。掲載順は売上順位ではなく、定番度・一気読みしやすさ・ジャンルのバランスを考えたヨミピク独自のおすすめ順です。'
           : page.path.startsWith('ranking/')
           ? 'ヨミピクでは巻ごとではなく作品タイトル単位でまとめています。公開されている人気情報を初期の参考にしながら、サイト内の「読みたい」や感想の反応もランキングに加えています。'
           : page.path.startsWith('series/')
             ? '作品への感想や評価、「読みたい」の反応をシリーズ単位で確認できます。次に読む候補は、同じ種類のランキングやテーマ特集からも探せます。'
             : '作品名だけでなく、ヨミピク内の感想や「読みたい」の反応も見ながら、今の気分に合う次の一冊を探せます。'
+
+        const completedSupport = page.path === 'guide/manga/completed'
+          ? `
+            <section style="margin-top:36px;padding-top:24px;border-top:1px solid #e9e4ef">
+              <h2 style="font-size:22px;margin:0 0 12px">目的別に完結漫画を探す</h2>
+              <h3 style="font-size:16px;margin:18px 0 6px">一気読みしたい完結漫画</h3>
+              <p style="margin:0;color:#625b6c;line-height:1.8">DEATH NOTE、約束のネバーランド、僕だけがいない街、サマータイムレンダ、彼方のアストラなど、続きが気になる作品から探せます。</p>
+              <h3 style="font-size:16px;margin:18px 0 6px">比較的短く読み切りやすい完結漫画</h3>
+              <p style="margin:0;color:#625b6c;line-height:1.8">彼方のアストラ、聲の形、チ。―地球の運動について―、僕だけがいない街など、長編を避けたいときの候補を紹介しています。</p>
+              <h3 style="font-size:16px;margin:18px 0 6px">恋愛・青春を楽しめる完結漫画</h3>
+              <p style="margin:0;color:#625b6c;line-height:1.8">君に届け、ちはやふる、かぐや様は告らせたい、のだめカンタービレ、フルーツバスケットなどから探せます。</p>
+            </section>
+            <section style="margin-top:32px;padding-top:24px;border-top:1px solid #e9e4ef">
+              <h2 style="font-size:22px;margin:0 0 12px">完結漫画選びのよくある疑問</h2>
+              <h3 style="font-size:16px;margin:18px 0 6px">完結漫画でまず読むなら？</h3>
+              <p style="margin:0;color:#625b6c;line-height:1.8">王道から選ぶなら、鋼の錬金術師、進撃の巨人、SLAM DUNK、ハイキュー!!などの定番作が候補です。</p>
+              <h3 style="font-size:16px;margin:18px 0 6px">一気読みしやすい完結漫画は？</h3>
+              <p style="margin:0;color:#625b6c;line-height:1.8">謎や続きが気になる作品なら、DEATH NOTE、約束のネバーランド、僕だけがいない街、サマータイムレンダなどが候補です。</p>
+            </section>`
+          : ''
 
         const fallback = `
           <main style="max-width:920px;margin:0 auto;padding:56px 24px 80px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#211b2a">
@@ -200,6 +221,7 @@ function staticSeoPages() {
             <p style="margin:0;max-width:800px;color:#625b6c;line-height:1.9;font-size:15px">${escapeHtml(page.description)}</p>
             <p style="margin:14px 0 0;max-width:800px;color:#625b6c;line-height:1.9;font-size:15px">${escapeHtml(extraCopy)}</p>
             ${itemList}
+            ${completedSupport}
             <nav aria-label="関連ページ" style="margin-top:38px;padding-top:22px;border-top:1px solid #e9e4ef">
               <strong style="display:block;margin-bottom:12px">関連ページ</strong>
               ${related}

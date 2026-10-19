@@ -1310,3 +1310,112 @@ footer small { font-size: 10px; }
   .completed-pick-grid { grid-template-columns: 1fr; }
   .completed-pick-card { padding: 13px; }
 }
+
+
+/* Completed manga: intent groups and FAQ */
+.completed-purpose-section,
+.completed-faq {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.completed-purpose-section > h3,
+.completed-faq > h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+.completed-purpose-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.completed-purpose-grid article {
+  padding: 16px;
+  border: 1px solid #e5dfeb;
+  border-radius: 15px;
+  background: white;
+}
+.completed-purpose-grid h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+.completed-purpose-grid p {
+  margin: 0;
+  color: #756d80;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.completed-purpose-grid article > div {
+  margin-top: 11px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.completed-purpose-grid a {
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: #f6f1ff;
+  color: #655574;
+  font-size: 9px;
+  font-weight: 800;
+}
+.completed-purpose-grid a:hover {
+  color: var(--purple);
+  background: #efe5ff;
+}
+.completed-faq details {
+  padding: 13px 0;
+  border-top: 1px solid #ece7f1;
+}
+.completed-faq details:last-child {
+  border-bottom: 1px solid #ece7f1;
+}
+.completed-faq summary {
+  cursor: pointer;
+  color: #453d4f;
+  font-size: 12px;
+  font-weight: 900;
+}
+.completed-faq details p {
+  margin: 9px 0 0;
+  color: #71697b;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.ranking-completed-link {
+  margin-top: 18px;
+  min-height: 76px;
+  padding: 14px 16px;
+  border: 1px solid #d8c9ef;
+  border-radius: 16px;
+  background: #faf6ff;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+}
+.ranking-completed-link span {
+  grid-column: 1;
+  color: #806f94;
+  font-size: 9px;
+  font-weight: 900;
+}
+.ranking-completed-link strong {
+  grid-column: 1;
+  color: var(--purple);
+  font-size: 14px;
+}
+.ranking-completed-link svg {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  color: var(--purple);
+}
+.ranking-completed-link:hover {
+  border-color: #bca4df;
+  background: #f5edff;
+}
+@media (max-width: 700px) {
+  .completed-purpose-grid { grid-template-columns: 1fr; }
+  .ranking-completed-link { margin-top: 14px; }
+}
