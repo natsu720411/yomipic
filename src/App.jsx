@@ -303,7 +303,7 @@ function Stars({ score }) {
   )
 }
 
-function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, onOpen, saving }) {
+function ResultCard({ work, saved, read, saveCount, reviewCount, onSave, onRead, onReview, onOpen, saving }) {
   return (
     <article className="work-card real-work-card">
       <a
@@ -341,10 +341,75 @@ function ResultCard({ work, saved, saveCount, reviewCount, onSave, onReview, onO
             {saving ? <LoaderCircle size={17} className="spin" /> : saved ? <BookmarkCheck size={17} /> : <Bookmark size={17} />}
             <span>{saving ? '更新中' : saved ? '読みたい解除' : '読みたい'}</span>
           </button>
+          <button
+            className={`read-button compact ${read ? 'read' : ''}`}
+            onClick={() => onRead(work)}
+            aria-label={read ? '読んだを解除' : '読んだ作品に追加'}
+          >
+            <BookOpen size={16} />
+            <span>{read ? '読んだ ✓' : '読んだ'}</span>
+          </button>
         </div>
       </div>
     </article>
   )
+}
+
+
+const SPOILER_PREFIX = '[[YOMIPIC_SPOILER]]'
+
+function reviewBodyInfo(body) {
+  const raw = String(body || '')
+  if (!raw.startsWith(SPOILER_PREFIX)) return { spoiler: false, text: raw }
+  return { spoiler: true, text: raw.slice(SPOILER_PREFIX.length).trimStart() }
+}
+
+function ReviewBody({ body }) {
+  const [revealed, setRevealed] = useState(false)
+  const info = reviewBodyInfo(body)
+
+  if (!info.spoiler) return <p>{info.text}</p>
+
+  return (
+    <div className={`spoiler-review ${revealed ? 'revealed' : ''}`}>
+      <div className="spoiler-review-head">
+        <strong>ネタバレあり</strong>
+        <button type="button" onClick={() => setRevealed((value) => !value)}>
+          {revealed ? '隠す' : '内容を見る'}
+        </button>
+      </div>
+      {revealed
+        ? <p>{info.text}</p>
+        : <p className="spoiler-placeholder">内容を隠しています。読みたい場合だけ表示してください。</p>}
+    </div>
+  )
+}
+
+function workSnapshot(work) {
+  return {
+    id: work?.id || '',
+    sourceId: work?.sourceId || '',
+    type: work?.type === 'novel' ? 'novel' : 'manga',
+    title: seriesTitle(work?.seriesTitle || work?.title || ''),
+    author: work?.author || '',
+    genre: work?.genre || '',
+    image: work?.image || '',
+    infoLink: work?.infoLink || '',
+  }
+}
+
+function completedGenreGroup(category) {
+  const value = String(category || '')
+  if (/スポーツ|競技/.test(value)) return 'sports'
+  if (/恋愛|ラブコメ|青春|学園|音楽/.test(value)) return 'romance'
+  if (/サスペンス|ミステリー|SF/.test(value)) return 'mystery'
+  if (/バトル|ファンタジー|ヒーロー|冒険/.test(value)) return 'action'
+  return 'other'
+}
+
+function completedVolumeCount(work) {
+  const match = String(work?.volumes || '').match(/\d+/)
+  return match ? Number(match[0]) : 0
 }
 
 export default function App() {
@@ -362,6 +427,21 @@ export default function App() {
   const [rating, setRating] = useState(5)
   const [mood, setMood] = useState('')
   const [reviewText, setReviewText] = useState('')
+  const [reviewSpoiler, setReviewSpoiler] = useState(false)
+  const [readWorks, setReadWorks] = useState(() => {
+    try {
+      const value = JSON.parse(localStorage.getItem('yomipic-read-works') || '[]')
+      return Array.isArray(value) ? value.slice(0, 200) : []
+    } catch { return [] }
+  })
+  const [recentViews, setRecentViews] = useState(() => {
+    try {
+      const value = JSON.parse(localStorage.getItem('yomipic-recent-views') || '[]')
+      return Array.isArray(value) ? value.slice(0, 8) : []
+    } catch { return [] }
+  })
+  const [completedVolumeFilter, setCompletedVolumeFilter] = useState('all')
+  const [completedGenreFilter, setCompletedGenreFilter] = useState('all')
   const [sharedReviews, setSharedReviews] = useState([])
   const [sharedSaves, setSharedSaves] = useState([])
   const [starterByType, setStarterByType] = useState({ manga: [], novel: [] })
@@ -381,6 +461,47 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('yomipic-saved', JSON.stringify([...saved]))
   }, [saved])
+
+  useEffect(() => {
+    localStorage.setItem('yomipic-read-works', JSON.stringify(readWorks))
+  }, [readWorks])
+
+  useEffect(() => {
+    localStorage.setItem('yomipic-recent-views', JSON.stringify(recentViews))
+  }, [recentViews])
+
+  useEffect(() => {
+    if (!detailWork?.title) return
+    const next = workSnapshot(detailWork)
+    const key = seriesKey(next.type, next.title)
+    setRecentViews((prev) => [
+      next,
+      ...prev.filter((item) => seriesKey(item.type, item.title) !== key),
+    ].slice(0, 8))
+  }, [detailWork])
+
+  const readSeriesKeys = useMemo(
+    () => new Set(readWorks.map((work) => seriesKey(work.type, work.title))),
+    [readWorks],
+  )
+
+  const filteredCompletedMangaPicks = useMemo(
+    () => completedMangaPicks.filter((work) => {
+      const count = completedVolumeCount(work)
+      const volumeMatches =
+        completedVolumeFilter === 'all' ||
+        (completedVolumeFilter === 'short' && count > 0 && count <= 10) ||
+        (completedVolumeFilter === 'medium' && count >= 11 && count <= 20) ||
+        (completedVolumeFilter === 'long' && count >= 21)
+
+      const genreMatches =
+        completedGenreFilter === 'all' ||
+        completedGenreGroup(work.category) === completedGenreFilter
+
+      return volumeMatches && genreMatches
+    }),
+    [completedVolumeFilter, completedGenreFilter],
+  )
 
   useEffect(() => {
     let active = true
@@ -1092,6 +1213,23 @@ export default function App() {
     }
   }
 
+  const toggleRead = (work) => {
+    if (!work?.title) return
+    const snapshot = workSnapshot(work)
+    const key = seriesKey(snapshot.type, snapshot.title)
+    const isRead = readSeriesKeys.has(key)
+
+    setReadWorks((prev) => isRead
+      ? prev.filter((item) => seriesKey(item.type, item.title) !== key)
+      : [snapshot, ...prev.filter((item) => seriesKey(item.type, item.title) !== key)].slice(0, 200)
+    )
+
+    trackEvent(isRead ? 'yomipic_unread' : 'yomipic_read', {
+      content_type: snapshot.type,
+      item_name: snapshot.title,
+    })
+  }
+
   const deleteReview = async (review) => {
     if (!review?.is_mine || deletingReviewId) return
 
@@ -1129,6 +1267,7 @@ export default function App() {
     setRating(5)
     setMood('')
     setReviewText('')
+    setReviewSpoiler(false)
     setCommunityError('')
   }
 
@@ -1155,7 +1294,9 @@ export default function App() {
           },
           rating,
           mood,
-          text: reviewText.trim(),
+          text: reviewSpoiler
+            ? `${SPOILER_PREFIX}${reviewText.trim().slice(0, 220)}`
+            : reviewText.trim().slice(0, 240),
         }),
       })
 
@@ -1168,6 +1309,7 @@ export default function App() {
         item_name: seriesTitle(selected.title),
         rating,
         mood: mood || 'none',
+        spoiler: reviewSpoiler,
       })
       setReviewOpen(false)
       setReviewText('')
@@ -1480,10 +1622,12 @@ export default function App() {
                       key={work.id}
                       work={work}
                       saved={savedSeriesKeys.has(seriesKey(work.type, work.title))}
+                      read={readSeriesKeys.has(seriesKey(work.type, work.title))}
                       saving={savingId === seriesKey(work.type, work.title)}
                       saveCount={seriesStatsMap.get(seriesKey(work.type, work.title))?.saves || 0}
                       reviewCount={seriesStatsMap.get(seriesKey(work.type, work.title))?.reviews || 0}
                       onSave={saveWork}
+                      onRead={toggleRead}
                       onReview={openReview}
                       onOpen={openDetail}
                     />
@@ -1518,10 +1662,36 @@ export default function App() {
                   <p>完結済みの名作・人気作をジャンル横断で30作品紹介します。掲載順は売上順位ではなく、定番度・一気読みしやすさ・ジャンルのバランスを考えたヨミピク独自のおすすめ順です。</p>
                   <p className="completed-volume-basis">巻数は原則として通常コミックス版を基準にしています。新装版・愛蔵版・文庫版などは巻数が異なる場合があります。</p>
                 </div>
+                <div className="completed-filter-bar" aria-label="完結漫画の絞り込み">
+                  <label>
+                    <span>巻数</span>
+                    <select value={completedVolumeFilter} onChange={(event) => setCompletedVolumeFilter(event.target.value)}>
+                      <option value="all">すべて</option>
+                      <option value="short">10巻以内</option>
+                      <option value="medium">11〜20巻</option>
+                      <option value="long">21巻以上</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>ジャンル</span>
+                    <select value={completedGenreFilter} onChange={(event) => setCompletedGenreFilter(event.target.value)}>
+                      <option value="all">すべて</option>
+                      <option value="action">バトル・冒険</option>
+                      <option value="sports">スポーツ</option>
+                      <option value="romance">恋愛・青春</option>
+                      <option value="mystery">ミステリー・SF</option>
+                      <option value="other">その他</option>
+                    </select>
+                  </label>
+                  <strong>{filteredCompletedMangaPicks.length}作品</strong>
+                  {(completedVolumeFilter !== 'all' || completedGenreFilter !== 'all') && (
+                    <button type="button" onClick={() => { setCompletedVolumeFilter('all'); setCompletedGenreFilter('all') }}>絞り込みを解除</button>
+                  )}
+                </div>
                 <div className="completed-pick-grid">
-                  {completedMangaPicks.map((work, index) => (
+                  {filteredCompletedMangaPicks.map((work) => (
                     <a key={work.title} href={seriesHref({ type: 'manga', title: work.title })} className="completed-pick-card">
-                      <span className="completed-pick-rank">{index + 1}</span>
+                      <span className="completed-pick-rank">{completedMangaPicks.findIndex((item) => item.title === work.title) + 1}</span>
                       <div>
                         <div className="completed-pick-meta">
                           <small>{work.category}</small>
@@ -1690,6 +1860,13 @@ export default function App() {
                             : <Bookmark size={16} />}
                         <span>{savedSeriesKeys.has(seriesKey(work.type, work.title)) ? '読みたい解除' : '読みたい'}</span>
                       </button>
+                      <button
+                        className={`read-button compact ${readSeriesKeys.has(seriesKey(work.type, work.title)) ? 'read' : ''}`}
+                        onClick={() => toggleRead(work)}
+                      >
+                        <BookOpen size={16} />
+                        <span>{readSeriesKeys.has(seriesKey(work.type, work.title)) ? '読んだ ✓' : '読んだ'}</span>
+                      </button>
                     </div>
                   </div>
                 </article>
@@ -1768,6 +1945,9 @@ export default function App() {
                         {savingId === seriesKey(work.type, work.title) ? <LoaderCircle size={14} className="spin" /> : <BookmarkCheck size={14} />}
                         本棚から外す
                       </button>
+                      <button className={`bookshelf-read-button ${readSeriesKeys.has(seriesKey(work.type, work.title)) ? 'read' : ''}`} onClick={() => toggleRead(work)}>
+                        <BookOpen size={14} /> {readSeriesKeys.has(seriesKey(work.type, work.title)) ? '読んだ ✓' : '読んだ'}
+                      </button>
                       <button className="bookshelf-detail-button" onClick={() => openDetail(work)}>
                         詳細を見る <ChevronRight size={15} />
                       </button>
@@ -1782,6 +1962,40 @@ export default function App() {
               <h3>まだ「読みたい」がありません</h3>
               <p>気になる漫画や小説を検索して、「読みたい」を押すとここに並びます。</p>
               <a href="#top">作品を探す <ChevronRight size={16} /></a>
+            </div>
+          )}
+        </section>
+
+        <section className="content-section read-library-section" id="read-library">
+          <div className="section-top">
+            <div>
+              <span className="section-kicker">READ</span>
+              <h2>読んだ作品</h2>
+              <p>読み終えた漫画・小説をこの端末に記録できます。作品ページの「読んだ」から追加・解除できます。</p>
+            </div>
+            <div className="bookshelf-count"><BookOpen size={17} /> {readWorks.length}作品</div>
+          </div>
+          {readWorks.length ? (
+            <div className="read-library-grid">
+              {readWorks.map((work) => (
+                <article className="read-library-card" key={seriesKey(work.type, work.title)}>
+                  <a href={seriesHref(work)} onClick={(event) => { event.preventDefault(); openDetail(work) }} className="read-library-cover">
+                    <Cover work={work} small />
+                  </a>
+                  <div>
+                    <small>{work.type === 'manga' ? '漫画' : '小説'}</small>
+                    <a href={seriesHref(work)} onClick={(event) => { event.preventDefault(); openDetail(work) }}><strong>{work.title}</strong></a>
+                    <span>{work.author || '著者情報なし'}</span>
+                  </div>
+                  <button type="button" onClick={() => toggleRead(work)}>解除</button>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="bookshelf-empty compact-empty">
+              <BookOpen size={28} />
+              <h3>まだ「読んだ」作品がありません</h3>
+              <p>作品詳細の「読んだ」を押すと、ここに読書記録として残せます。</p>
             </div>
           )}
         </section>
@@ -1859,6 +2073,36 @@ export default function App() {
           </div>
         </section>
 
+        {recentViews.length > 0 && (
+          <section className="content-section recent-section" id="recent">
+            <div className="section-top">
+              <div>
+                <span className="section-kicker">RECENT</span>
+                <h2>最近見た作品</h2>
+                <p>さっき気になった作品へすぐ戻れます。この履歴はこの端末だけに保存されます。</p>
+              </div>
+              <button className="recent-clear" type="button" onClick={() => setRecentViews([])}>履歴を消す</button>
+            </div>
+            <div className="recent-view-grid">
+              {recentViews.map((work) => (
+                <a
+                  key={seriesKey(work.type, work.title)}
+                  href={seriesHref(work)}
+                  onClick={(event) => { event.preventDefault(); openDetail(work) }}
+                >
+                  <Cover work={work} small />
+                  <div>
+                    <small>{work.type === 'manga' ? '漫画' : '小説'}</small>
+                    <strong>{work.title}</strong>
+                    <span>{work.author || '著者情報なし'}</span>
+                  </div>
+                  <ChevronRight size={16} />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="content-section review-section" id="reviews">
           <div className="section-top">
             <div>
@@ -1880,7 +2124,7 @@ export default function App() {
                   <div className="review-user"><span>Y</span><div><strong>ヨミピク読者</strong><small>{new Date(review.created_at).toLocaleDateString('ja-JP')}</small></div></div>
                   <div className="review-work"><Cover work={work} small /><div><small>{work.genre}</small><strong>{work.title}</strong></div></div>
                   <div className="review-score"><Stars score={review.rating} /> {review.mood && <span>{review.mood}</span>}</div>
-                  <p>{review.body}</p>
+                  <ReviewBody body={review.body} />
                   {review.is_mine && (
                     <div className="own-review-actions">
                       <span>自分の感想</span>
@@ -1927,6 +2171,16 @@ export default function App() {
         </nav>
         <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。共有ランキングはヨミピク内の反応を集計しています。</small>
       </footer>
+
+      <nav className="mobile-bottom-nav" aria-label="スマホメニュー">
+        <a href="/"><BookOpen size={19} /><span>ホーム</span></a>
+        <button type="button" onClick={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+          setTimeout(() => document.getElementById('book-search')?.focus(), 250)
+        }}><Search size={19} /><span>検索</span></button>
+        <a href="/#ranking"><Trophy size={19} /><span>ランキング</span></a>
+        <a href="/#bookshelf"><BookmarkCheck size={19} /><span>本棚</span></a>
+      </nav>
 
       {detailWork && (
         <div className="detail-page" role="dialog" aria-modal="true" aria-label={`${detailWork.title}の作品詳細`}>
@@ -1986,6 +2240,13 @@ export default function App() {
                         : <Bookmark size={17} />}
                     <span>{savedSeriesKeys.has(detailSeriesKey) ? '読みたい解除' : '読みたい'}</span>
                   </button>
+                  <button
+                    className={`read-button detail-read-button ${readSeriesKeys.has(detailSeriesKey) ? 'read' : ''}`}
+                    onClick={() => toggleRead(detailWork)}
+                  >
+                    <BookOpen size={17} />
+                    <span>{readSeriesKeys.has(detailSeriesKey) ? '読んだ ✓' : '読んだ'}</span>
+                  </button>
                   <button className="detail-share-button" onClick={shareDetail}>
                     <Share2 size={17} /> 共有
                   </button>
@@ -2025,7 +2286,7 @@ export default function App() {
                           {review.mood && <span>{review.mood}</span>}
                         </div>
                       </div>
-                      <p>{review.body}</p>
+                      <ReviewBody body={review.body} />
                       {review.is_mine && (
                         <div className="own-review-actions">
                           <span>自分の感想</span>
@@ -2102,16 +2363,21 @@ export default function App() {
 
               {communityError && <div className="modal-error">{communityError}</div>}
 
+              <label className="spoiler-toggle">
+                <input type="checkbox" checked={reviewSpoiler} onChange={(event) => setReviewSpoiler(event.target.checked)} />
+                <span><strong>ネタバレを含む</strong><small>ONにすると、他の人には本文を隠して表示します。</small></span>
+              </label>
+
               <label htmlFor="reviewText">ひとこと感想</label>
               <textarea
                 id="reviewText"
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 placeholder="読んだ直後の気持ちを気軽に書いてみよう"
-                maxLength={240}
+                maxLength={reviewSpoiler ? 220 : 240}
                 required
               />
-              <div className="form-bottom"><span>{reviewText.length}/240</span><button type="submit" disabled={postingReview}>{postingReview ? '投稿中…' : 'みんなに投稿する'}</button></div>
+              <div className="form-bottom"><span>{reviewText.length}/{reviewSpoiler ? 220 : 240}</span><button type="submit" disabled={postingReview}>{postingReview ? '投稿中…' : 'みんなに投稿する'}</button></div>
             </form>
           </div>
         </div>
