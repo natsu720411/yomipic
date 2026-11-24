@@ -508,6 +508,14 @@ export default function App() {
   const [completedSort, setCompletedSort] = useState('rank')
   const [diagnosisAnswers, setDiagnosisAnswers] = useState({ mood: '', length: '', pace: '' })
   const [compareTitles, setCompareTitles] = useState([])
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try {
+      const value = JSON.parse(localStorage.getItem('yomipic-search-history') || '[]')
+      return Array.isArray(value) ? value.slice(0, 6) : []
+    } catch { return [] }
+  })
+  const [diagnosisShareStatus, setDiagnosisShareStatus] = useState('')
   const [sharedReviews, setSharedReviews] = useState([])
   const [sharedSaves, setSharedSaves] = useState([])
   const [starterByType, setStarterByType] = useState({ manga: [], novel: [] })
@@ -535,6 +543,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('yomipic-recent-views', JSON.stringify(recentViews))
   }, [recentViews])
+
+  useEffect(() => {
+    localStorage.setItem('yomipic-search-history', JSON.stringify(searchHistory))
+  }, [searchHistory])
 
   useEffect(() => {
     if (!detailWork?.title) return
@@ -609,6 +621,23 @@ export default function App() {
     () => compareTitles.map((title) => completedMangaPicks.find((work) => work.title === title)).filter(Boolean),
     [compareTitles],
   )
+
+  const searchSuggestions = useMemo(() => {
+    const term = query.trim().normalize('NFKC').toLowerCase()
+    if (!term) return []
+
+    const pool = [
+      ...popularSeries,
+      ...completedMangaPicks.map((work) => ({ type: 'manga', title: work.title, author: work.author })),
+    ]
+    const seen = new Set()
+    return pool.filter((work) => {
+      const key = seriesKey(work.type, work.title)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return `${work.title} ${work.author || ''}`.normalize('NFKC').toLowerCase().includes(term)
+    }).slice(0, 6)
+  }, [query])
 
   useEffect(() => {
     let active = true
@@ -1261,6 +1290,34 @@ export default function App() {
     trackEvent('yomipic_compare_clear')
   }
 
+  const shareDiagnosis = async () => {
+    if (!diagnosisRecommendations.length) return
+    const titles = diagnosisRecommendations.map((work) => work.title)
+    const text = `ヨミピクの3問漫画診断で「${titles.join('・')}」がおすすめに出た！ #ヨミピク #漫画診断`
+    const url = 'https://yomipic.vercel.app/#manga-diagnosis'
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'ヨミピク 3問漫画診断', text, url })
+        setDiagnosisShareStatus('共有しました')
+        trackEvent('yomipic_diagnosis_share', { method: 'native', picks: titles.join('|') })
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`)
+        setDiagnosisShareStatus('診断結果をコピーしました')
+        trackEvent('yomipic_diagnosis_share', { method: 'clipboard', picks: titles.join('|') })
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(`${text}\n${url}`)
+          setDiagnosisShareStatus('診断結果をコピーしました')
+        } catch {
+          setDiagnosisShareStatus('共有できませんでした')
+        }
+      }
+    }
+  }
+
   const saveWork = async (work) => {
     if (!work || work.demo || savingId) return
 
@@ -1462,6 +1519,12 @@ export default function App() {
     const targetType = forcedType === 'novel' ? 'novel' : (forcedType === 'manga' ? 'manga' : type)
     const landing = landingForQuery(term, targetType)
 
+    setSearchHistory((prev) => [
+      { term, type: targetType },
+      ...prev.filter((item) => !(item.term === term && item.type === targetType)),
+    ].slice(0, 6))
+    setSearchFocused(false)
+
     if (forcedQuery !== undefined) setQuery(forcedQuery)
     if (forcedType) setType(targetType)
 
@@ -1656,19 +1719,70 @@ export default function App() {
               </>
             )}
 
-            <form className="search-box" onSubmit={searchBooks}>
-              <Search size={21} />
-              <input
-                id="book-search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="実在する作品名・作者名から探す"
-                aria-label="作品検索"
-              />
-              <button className="search-submit" type="submit" disabled={liveLoading}>
-                {liveLoading ? <LoaderCircle size={17} className="spin" /> : '検索'}
-              </button>
-            </form>
+            <div className="search-shell">
+              <form className="search-box" onSubmit={searchBooks}>
+                <Search size={21} />
+                <input
+                  id="book-search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => window.setTimeout(() => setSearchFocused(false), 140)}
+                  placeholder="作品名・作者名を入力すると候補が出ます"
+                  aria-label="作品検索"
+                  autoComplete="off"
+                />
+                {query && (
+                  <button className="search-clear-button" type="button" onClick={() => setQuery('')} aria-label="検索文字を消す">
+                    <X size={15} />
+                  </button>
+                )}
+                <button className="search-submit" type="submit" disabled={liveLoading}>
+                  {liveLoading ? <LoaderCircle size={17} className="spin" /> : '検索'}
+                </button>
+              </form>
+
+              {searchFocused && (searchSuggestions.length > 0 || (!query.trim() && searchHistory.length > 0)) && (
+                <div className="search-suggestion-panel">
+                  {query.trim() ? (
+                    <>
+                      <strong>作品候補</strong>
+                      {searchSuggestions.map((work) => (
+                        <button
+                          key={`suggest-${work.type}-${work.title}`}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => searchBooks(null, work.title, work.type)}
+                        >
+                          <Search size={14} />
+                          <span><b>{work.title}</b><small>{work.author || ''} ・ {work.type === 'manga' ? '漫画' : '小説'}</small></span>
+                          <ChevronRight size={14} />
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <div className="search-history-head">
+                        <strong>最近の検索</strong>
+                        <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setSearchHistory([])}>履歴を消す</button>
+                      </div>
+                      {searchHistory.map((item) => (
+                        <button
+                          key={`history-${item.type}-${item.term}`}
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => searchBooks(null, item.term, item.type)}
+                        >
+                          <Search size={14} />
+                          <span><b>{item.term}</b><small>{item.type === 'manga' ? '漫画' : '小説'}で再検索</small></span>
+                          <ChevronRight size={14} />
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="hero-chips">
               {pageRoute.kind === 'home' ? (
@@ -1831,9 +1945,15 @@ export default function App() {
             ) : (
               <div className="diagnosis-results">
                 <div className="diagnosis-result-title">
-                  <span>YOUR PICKS</span>
-                  <h3>今のあなたに、この3作品。</h3>
-                  <p>気になる2〜3作品を「比較に追加」すると、そのまま違いを見比べられます。</p>
+                  <div>
+                    <span>YOUR PICKS</span>
+                    <h3>今のあなたに、この3作品。</h3>
+                    <p>気になる2〜3作品を「比較に追加」すると、そのまま違いを見比べられます。</p>
+                  </div>
+                  <div className="diagnosis-share-wrap">
+                    <button type="button" onClick={shareDiagnosis}><Share2 size={14} /> 診断結果を共有</button>
+                    {diagnosisShareStatus && <small>{diagnosisShareStatus}</small>}
+                  </div>
                 </div>
                 <div className="diagnosis-result-grid">
                   {diagnosisRecommendations.map((work, index) => {
@@ -1943,7 +2063,30 @@ export default function App() {
                 })}
               </div>
             ) : (
-              <div className="search-status"><Search size={28} /><h3>作品が見つかりませんでした</h3><p>タイトルや作者名を変えて検索してみてください。</p></div>
+              <div className="search-zero-state">
+                <div className="search-status">
+                  <Search size={28} />
+                  <h3>「{query}」では見つかりませんでした</h3>
+                  <p>表記を短くするか、作者名だけでも試せます。迷ったら人気作品から探してみてください。</p>
+                  <button type="button" onClick={() => {
+                    setQuery('')
+                    setSearchFocused(true)
+                    setTimeout(() => document.getElementById('book-search')?.focus(), 20)
+                  }}>検索し直す</button>
+                </div>
+                <div className="zero-recommendations">
+                  <strong>代わりに人気作品を見る</strong>
+                  <div>
+                    {popularSeries.filter((work) => work.type === type).slice(0, 6).map((work) => (
+                      <a key={`zero-${work.type}-${work.title}`} href={seriesHref(work)}>
+                        <span>{work.title}</span>
+                        <small>{work.author}</small>
+                        <ChevronRight size={14} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
 
             {pageRoute.kind === 'theme' && pageRoute.topic && (
@@ -2514,6 +2657,19 @@ export default function App() {
         </nav>
         <small>© 2026 YomiPic. 実作品検索にはGoogle Booksを利用しています。共有ランキングはヨミピク内の反応を集計しています。</small>
       </footer>
+
+      {compareWorks.length > 0 && (
+        <div className="compare-floating-tray" role="status" aria-live="polite">
+          <div>
+            <strong>{compareWorks.length}/3作品を比較中</strong>
+            <span>{compareWorks.map((work) => work.title).join('・')}</span>
+          </div>
+          <a href="#manga-compare" onClick={() => setTimeout(() => document.getElementById('manga-compare')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 10)}>
+            比較を見る <ChevronRight size={15} />
+          </a>
+          <button type="button" onClick={clearComparison} aria-label="比較をすべて解除"><X size={15} /></button>
+        </div>
+      )}
 
       <nav className="mobile-bottom-nav" aria-label="スマホメニュー">
         <a href="/"><BookOpen size={19} /><span>ホーム</span></a>
