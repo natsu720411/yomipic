@@ -21,6 +21,12 @@ function syncRouteMode() {
       : 'home'
 }
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  }, { once: true })
+}
+
 function enhanceFooterAndReviews() {
   const footer = document.querySelector('.footer-links')
   if (footer && !footer.querySelector('[data-yomipic-legal-link]')) {

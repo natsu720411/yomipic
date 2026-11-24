@@ -1,0 +1,42 @@
+{
+  "name": "ヨミピク - 次に読む漫画を見つける",
+  "short_name": "ヨミピク",
+  "description": "漫画診断・ランキング・完結漫画・作品比較から次に読む漫画を見つけるWebアプリ",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "漫画ランキング",
+      "short_name": "ランキング",
+      "url": "/ranking/manga"
+    },
+    {
+      "name": "完結漫画100選",
+      "short_name": "完結漫画",
+      "url": "/guide/manga/completed"
+    },
+    {
+      "name": "漫画診断",
+      "short_name": "診断",
+      "url": "/#manga-diagnosis"
+    }
+  ]
+}

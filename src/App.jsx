@@ -64,6 +64,97 @@ const popularSeries = [
   { type: 'novel', title: '三体', author: '劉慈欣' },
 ]
 
+const searchAliases = [
+  ['manga', 'ハガレン', '鋼の錬金術師'],
+  ['manga', 'はがれん', '鋼の錬金術師'],
+  ['manga', '進撃', '進撃の巨人'],
+  ['manga', 'しんげき', '進撃の巨人'],
+  ['manga', 'スラダン', 'SLAM DUNK'],
+  ['manga', 'slam dunk', 'SLAM DUNK'],
+  ['manga', 'ヒロアカ', '僕のヒーローアカデミア'],
+  ['manga', '僕アカ', '僕のヒーローアカデミア'],
+  ['manga', '東リベ', '東京卍リベンジャーズ'],
+  ['manga', 'とうりべ', '東京卍リベンジャーズ'],
+  ['manga', 'デスノ', 'DEATH NOTE'],
+  ['manga', 'デスノート', 'DEATH NOTE'],
+  ['manga', 'フリーレン', '葬送のフリーレン'],
+  ['manga', '鬼滅', '鬼滅の刃'],
+  ['manga', 'きめつ', '鬼滅の刃'],
+  ['manga', '呪術', '呪術廻戦'],
+  ['manga', 'じゅじゅつ', '呪術廻戦'],
+  ['manga', 'ワンピ', 'ONE PIECE'],
+  ['manga', 'ワンピース', 'ONE PIECE'],
+  ['manga', 'コナン', '名探偵コナン'],
+  ['manga', '薬屋', '薬屋のひとりごと'],
+  ['manga', 'ファブル', 'ザ・ファブル'],
+  ['manga', '五等分', '五等分の花嫁'],
+  ['manga', '高木さん', 'からかい上手の高木さん'],
+  ['novel', 'ヘイルメアリー', 'プロジェクト・ヘイル・メアリー'],
+  ['novel', '変な家', '変な家2 ～11の間取り図～'],
+]
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[ぁ-ゖ]/g, (char) => String.fromCharCode(char.charCodeAt(0) + 0x60))
+    .replace(/[\s　・･:：!！?？,，.。'"“”‘’「」『』【】()（）\[\]<>＜＞\-―ー]/g, '')
+}
+
+function editDistance(a, b) {
+  const left = normalizeSearchText(a)
+  const right = normalizeSearchText(b)
+  if (!left) return right.length
+  if (!right) return left.length
+  const prev = Array.from({ length: right.length + 1 }, (_, index) => index)
+  for (let i = 1; i <= left.length; i += 1) {
+    let diagonal = prev[0]
+    prev[0] = i
+    for (let j = 1; j <= right.length; j += 1) {
+      const above = prev[j]
+      const cost = left[i - 1] === right[j - 1] ? 0 : 1
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diagonal + cost)
+      diagonal = above
+    }
+  }
+  return prev[right.length]
+}
+
+function resolveSearchTerm(term, type) {
+  const normalized = normalizeSearchText(term)
+  const alias = searchAliases.find(([aliasType, value]) => aliasType === type && normalizeSearchText(value) === normalized)
+  if (alias) return alias[2]
+
+  if (normalized.length < 3) return term
+
+  const pool = [
+    ...popularSeries.filter((work) => work.type === type).map((work) => work.title),
+    ...(type === 'manga' ? completedMangaPicks.map((work) => work.title) : []),
+  ]
+  const exact = pool.find((title) => normalizeSearchText(title) === normalized)
+  if (exact) return exact
+
+  let best = null
+  let bestDistance = Infinity
+  for (const title of pool) {
+    const distance = editDistance(normalized, title)
+    if (distance < bestDistance) {
+      best = title
+      bestDistance = distance
+    }
+  }
+  const allowed = normalized.length <= 5 ? 1 : 2
+  return best && bestDistance <= allowed ? best : term
+}
+
+function sortReviewRows(rows, mode) {
+  let values = [...rows]
+  if (mode === 'no-spoiler') values = values.filter((review) => !reviewBodyInfo(review.body).spoiler)
+  if (mode === 'high') return values.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0) || new Date(b.created_at) - new Date(a.created_at))
+  if (mode === 'low') return values.sort((a, b) => Number(a.rating || 0) - Number(b.rating || 0) || new Date(b.created_at) - new Date(a.created_at))
+  return values.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+}
+
 const intentGuides = [
   { slug: 'completed', label: '完結漫画おすすめランキング100選', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後まで読める完結済み漫画100作品を、巻数・ジャンル・読み方から比較して選べます。' },
   ...completedIntentGuides.map(({ titles, seoTitle, metaDescription, ...guide }) => guide),
@@ -391,7 +482,7 @@ function completedLengthLabel(work) {
   return 'じっくり長編'
 }
 
-function MangaComparison({ works, onRemove, onClear }) {
+function MangaComparison({ works, onRemove, onClear, onShare, shareStatus }) {
   return (
     <section className="manga-compare-panel" id="manga-compare" aria-labelledby="manga-compare-title">
       <div className="manga-compare-head">
@@ -400,7 +491,13 @@ function MangaComparison({ works, onRemove, onClear }) {
           <h3 id="manga-compare-title">気になる漫画を比べる</h3>
           <p>最大3作品。巻数・ジャンル・読みごたえを並べて、次の1冊を決められます。</p>
         </div>
-        {works.length > 0 && <button type="button" onClick={onClear}>すべて外す</button>}
+        {works.length > 0 && (
+          <div className="manga-compare-head-actions">
+            {works.length >= 2 && <button type="button" onClick={onShare}><Share2 size={13} /> 比較を共有</button>}
+            <button type="button" onClick={onClear}>すべて外す</button>
+            {shareStatus && <small>{shareStatus}</small>}
+          </div>
+        )}
       </div>
 
       {works.length < 2 ? (
@@ -477,7 +574,12 @@ export default function App() {
   const [completedGenreFilter, setCompletedGenreFilter] = useState('all')
   const [completedSort, setCompletedSort] = useState('rank')
   const [diagnosisAnswers, setDiagnosisAnswers] = useState({ mood: '', length: '', pace: '' })
-  const [compareTitles, setCompareTitles] = useState([])
+  const [compareTitles, setCompareTitles] = useState(() => {
+    try {
+      const value = new URLSearchParams(window.location.search).get('compare') || ''
+      return value.split('|').map((item) => item.trim()).filter((title) => completedMangaPicks.some((work) => work.title === title)).slice(0, 3)
+    } catch { return [] }
+  })
   const [searchFocused, setSearchFocused] = useState(false)
   const [searchHistory, setSearchHistory] = useState(() => {
     try {
@@ -486,6 +588,11 @@ export default function App() {
     } catch { return [] }
   })
   const [diagnosisShareStatus, setDiagnosisShareStatus] = useState('')
+  const [compareShareStatus, setCompareShareStatus] = useState('')
+  const [reviewSort, setReviewSort] = useState('new')
+  const [detailReviewSort, setDetailReviewSort] = useState('new')
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [isInstalled, setIsInstalled] = useState(() => window.matchMedia?.('(display-mode: standalone)')?.matches || false)
   const [sharedReviews, setSharedReviews] = useState([])
   const [sharedSaves, setSharedSaves] = useState([])
   const [starterByType, setStarterByType] = useState({ manga: [], novel: [] })
@@ -517,6 +624,24 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('yomipic-search-history', JSON.stringify(searchHistory))
   }, [searchHistory])
+
+  useEffect(() => {
+    const onBeforeInstall = (event) => {
+      event.preventDefault()
+      setInstallPrompt(event)
+    }
+    const onInstalled = () => {
+      setInstallPrompt(null)
+      setIsInstalled(true)
+      trackEvent('yomipic_pwa_installed')
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
 
   useEffect(() => {
     if (!detailWork?.title) return
@@ -606,7 +731,7 @@ export default function App() {
   )
 
   const searchSuggestions = useMemo(() => {
-    const term = query.trim().normalize('NFKC').toLowerCase()
+    const term = normalizeSearchText(query)
     if (!term) return []
 
     const pool = [
@@ -618,7 +743,12 @@ export default function App() {
       const key = seriesKey(work.type, work.title)
       if (seen.has(key)) return false
       seen.add(key)
-      return `${work.title} ${work.author || ''}`.normalize('NFKC').toLowerCase().includes(term)
+      const searchable = normalizeSearchText(`${work.title} ${work.author || ''}`)
+      const aliases = searchAliases
+        .filter(([aliasType,, target]) => aliasType === work.type && target === work.title)
+        .map(([, alias]) => normalizeSearchText(alias))
+      const fuzzy = term.length >= 3 && editDistance(term, work.title) <= (term.length <= 5 ? 1 : 2)
+      return searchable.includes(term) || aliases.some((alias) => alias.includes(term) || term.includes(alias)) || fuzzy
     }).slice(0, 6)
   }, [query])
 
@@ -922,6 +1052,30 @@ export default function App() {
     })
   }, [saved, sharedSaves, seriesStatsMap])
 
+  const personalRecommendations = useMemo(() => {
+    const signals = [...recentViews, ...readWorks, ...bookshelfWorks]
+    if (!signals.length) return []
+
+    const seen = new Set(signals.map((work) => seriesKey(work.type, work.title)))
+    const groupCounts = new Map()
+
+    for (const signal of signals) {
+      if (signal.type !== 'manga') continue
+      const known = completedMangaPicks.find((work) => seriesKey('manga', work.title) === seriesKey('manga', signal.title))
+      const group = completedGenreGroup(known?.category || signal.genre || '')
+      groupCounts.set(group, (groupCounts.get(group) || 0) + 1)
+    }
+
+    return completedMangaPicks
+      .filter((work) => !seen.has(seriesKey('manga', work.title)))
+      .map((work, index) => ({
+        ...work,
+        personalScore: (groupCounts.get(completedGenreGroup(work.category)) || 0) * 18 + Math.max(0, 30 - index * 0.2),
+      }))
+      .sort((a, b) => b.personalScore - a.personalScore)
+      .slice(0, 6)
+  }, [recentViews, readWorks, bookshelfWorks])
+
   const detailDbId = detailWork ? (detailWork.dbId || dbWorkId(detailWork)) : ''
   const detailSeriesKey = detailWork ? seriesKey(detailWork.type, detailWork.seriesTitle || detailWork.title) : ''
   const detailReviews = useMemo(
@@ -945,6 +1099,42 @@ export default function App() {
       : 0,
     [detailSeriesKey, sharedSaves],
   )
+
+  const sortedFeedReviews = useMemo(
+    () => sortReviewRows(sharedReviews, reviewSort),
+    [sharedReviews, reviewSort],
+  )
+
+  const sortedDetailReviews = useMemo(
+    () => sortReviewRows(detailReviews, detailReviewSort),
+    [detailReviews, detailReviewSort],
+  )
+
+  const detailRecommendations = useMemo(() => {
+    if (!detailWork) return []
+
+    if (detailWork.type !== 'manga') {
+      return popularSeries
+        .filter((work) => work.type === detailWork.type && seriesKey(work.type, work.title) !== detailSeriesKey)
+        .slice(0, 6)
+    }
+
+    const current = completedMangaPicks.find((work) => seriesKey('manga', work.title) === detailSeriesKey)
+    const currentGroup = completedGenreGroup(current?.category || detailWork.genre || '')
+    const currentCount = completedVolumeCount(current || {})
+
+    const scored = completedMangaPicks
+      .filter((work) => seriesKey('manga', work.title) !== detailSeriesKey)
+      .map((work, index) => {
+        const sameGroup = completedGenreGroup(work.category) === currentGroup ? 28 : 0
+        const count = completedVolumeCount(work)
+        const lengthScore = currentCount && count ? Math.max(0, 14 - Math.abs(currentCount - count) * 0.45) : 0
+        return { ...work, type: 'manga', genre: work.category, recommendationScore: sameGroup + lengthScore + Math.max(0, 15 - index * 0.08) }
+      })
+      .sort((a, b) => b.recommendationScore - a.recommendationScore)
+
+    return scored.slice(0, 6)
+  }, [detailWork, detailSeriesKey])
 
   useEffect(() => {
     if (!detailWork && !reviewOpen) return undefined
@@ -1260,6 +1450,7 @@ export default function App() {
     const alreadySelected = compareTitles.includes(title)
     if (!alreadySelected && compareTitles.length >= 3) return
 
+    setCompareShareStatus('')
     setCompareTitles((prev) => alreadySelected
       ? prev.filter((item) => item !== title)
       : [...prev, title]
@@ -1274,6 +1465,37 @@ export default function App() {
   const clearComparison = () => {
     setCompareTitles([])
     trackEvent('yomipic_compare_clear')
+  }
+
+  const shareComparison = async () => {
+    if (compareWorks.length < 2) return
+    const titles = compareWorks.map((work) => work.title)
+    const params = new URLSearchParams()
+    params.set('compare', titles.join('|'))
+    const url = `https://yomipic.vercel.app/guide/manga/completed?${params.toString()}#manga-compare`
+    const text = `${titles.join(' vs ')}をヨミピクで比較中！ #ヨミピク #漫画比較`
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'ヨミピク 漫画比較', text, url })
+        setCompareShareStatus('共有しました')
+        trackEvent('yomipic_compare_share', { method: 'native', items: titles.join('|') })
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`)
+        setCompareShareStatus('比較リンクをコピーしました')
+        trackEvent('yomipic_compare_share', { method: 'clipboard', items: titles.join('|') })
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') setCompareShareStatus('共有できませんでした')
+    }
+  }
+
+  const installPwa = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    const choice = await installPrompt.userChoice.catch(() => null)
+    trackEvent('yomipic_pwa_install_prompt', { outcome: choice?.outcome || 'unknown' })
+    if (choice?.outcome === 'accepted') setInstallPrompt(null)
   }
 
   const shareDiagnosis = async () => {
@@ -1504,6 +1726,7 @@ export default function App() {
 
     const targetType = forcedType === 'novel' ? 'novel' : (forcedType === 'manga' ? 'manga' : type)
     const landing = landingForQuery(term, targetType)
+    const resolvedTerm = landing ? term : resolveSearchTerm(term, targetType)
 
     setSearchHistory((prev) => [
       { term, type: targetType },
@@ -1531,7 +1754,7 @@ export default function App() {
     setLiveError('')
 
     try {
-      const response = await fetch(`/api/books?q=${encodeURIComponent(term)}&type=${targetType}`)
+      const response = await fetch(`/api/books?q=${encodeURIComponent(resolvedTerm)}&type=${targetType}`)
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || '検索に失敗しました')
       const uniqueSeries = []
@@ -1549,6 +1772,7 @@ export default function App() {
       setLiveResults(uniqueSeries)
       trackEvent('yomipic_search', {
         search_term: term,
+        resolved_search_term: resolvedTerm,
         content_type: targetType,
         results_count: uniqueSeries.length,
       })
@@ -1862,6 +2086,13 @@ export default function App() {
               <div><strong>3冊</strong><span>同時に作品比較</span></div>
               <div><strong>無料</strong><span>本棚・読書記録</span></div>
             </div>
+            {!isInstalled && installPrompt && (
+              <button className="pwa-install-card" type="button" onClick={installPwa}>
+                <BookOpen size={18} />
+                <span><strong>ヨミピクをホーム画面に追加</strong><small>アプリのようにすぐ開けます。無料・インストール不要のWebアプリです。</small></span>
+                <ChevronRight size={18} />
+              </button>
+            )}
           </section>
         )}
 
@@ -1964,9 +2195,32 @@ export default function App() {
                     )
                   })}
                 </div>
-                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} />
+                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} onShare={shareComparison} shareStatus={compareShareStatus} />
               </div>
             )}
+          </section>
+        )}
+
+        {pageRoute.kind === 'home' && !hasSearched && personalRecommendations.length > 0 && (
+          <section className="personal-home-section" id="for-you">
+            <div className="section-top">
+              <div>
+                <span className="section-kicker">FOR YOU</span>
+                <h2>あなた向けの次の漫画。</h2>
+                <p>「読みたい」「読んだ」「最近見た」の傾向から、この端末だけでおすすめを選んでいます。</p>
+              </div>
+            </div>
+            <div className="personal-home-grid">
+              {personalRecommendations.map((work) => (
+                <a key={work.title} href={seriesHref({ type: 'manga', title: work.title })}>
+                  <span>{work.category}</span>
+                  <strong>{work.title}</strong>
+                  <small>{work.author} ・ {work.volumes}</small>
+                  <p>{work.note}</p>
+                  <ChevronRight size={16} />
+                </a>
+              ))}
+            </div>
           </section>
         )}
 
@@ -2124,7 +2378,7 @@ export default function App() {
                     )
                   })}
                 </div>
-                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} />
+                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} onShare={shareComparison} shareStatus={compareShareStatus} />
               </section>
             )}
 
@@ -2201,7 +2455,7 @@ export default function App() {
                     )
                   })}
                 </div>
-                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} />
+                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} onShare={shareComparison} shareStatus={compareShareStatus} />
                 <section className="completed-purpose-section" aria-labelledby="completed-purpose-title">
                   <h3 id="completed-purpose-title">目的別に完結漫画を探す</h3>
                   <div className="completed-purpose-grid">
@@ -2623,6 +2877,15 @@ export default function App() {
               <h2>みんなのひとこと感想</h2>
               <p>長文じゃなくてもOK。投稿された感想は、すべてのヨミピク利用者に共有されます。</p>
             </div>
+            <label className="review-sort-control">
+              <span>並び替え</span>
+              <select value={reviewSort} onChange={(event) => setReviewSort(event.target.value)}>
+                <option value="new">新着順</option>
+                <option value="high">高評価順</option>
+                <option value="low">低評価順</option>
+                <option value="no-spoiler">ネタバレなし</option>
+              </select>
+            </label>
           </div>
 
           {communityError && (
@@ -2630,7 +2893,7 @@ export default function App() {
           )}
 
           <div className="review-feed">
-            {sharedReviews.length > 0 ? sharedReviews.slice(0, 8).map((review) => {
+            {sortedFeedReviews.length > 0 ? sortedFeedReviews.slice(0, 8).map((review) => {
               const work = rowWork(review)
               return (
                 <article className="review-card" key={review.id}>
@@ -2792,12 +3055,20 @@ export default function App() {
                   <span className="section-kicker">REVIEWS</span>
                   <h2>この作品の感想</h2>
                 </div>
-                <button onClick={() => openReview(detailWork)}><PenLine size={16} /> 感想を書く</button>
+                <div className="detail-review-tools">
+                  <select value={detailReviewSort} onChange={(event) => setDetailReviewSort(event.target.value)} aria-label="感想の並び順">
+                    <option value="new">新着順</option>
+                    <option value="high">高評価順</option>
+                    <option value="low">低評価順</option>
+                    <option value="no-spoiler">ネタバレなし</option>
+                  </select>
+                  <button onClick={() => openReview(detailWork)}><PenLine size={16} /> 感想を書く</button>
+                </div>
               </div>
 
-              {detailReviews.length ? (
+              {sortedDetailReviews.length ? (
                 <div className="detail-review-list">
-                  {detailReviews.map((review) => (
+                  {sortedDetailReviews.map((review) => (
                     <article className="detail-review-item" key={review.id}>
                       <div className="detail-review-top">
                         <div className="review-user">
@@ -2839,21 +3110,19 @@ export default function App() {
               <div className="detail-section-head">
                 <div>
                   <span className="section-kicker">NEXT READ</span>
-                  <h2>ほかの人気{detailWork.type === 'manga' ? '漫画' : '小説'}も見る</h2>
+                  <h2>{detailWork.type === 'manga' ? 'この漫画が好きなら、次はこれ。' : 'この小説の次に読むなら。'}</h2>
+                  <p>{detailWork.type === 'manga' ? 'ジャンルと巻数の近さから、次に読みやすい作品を選んでいます。' : '人気作品から次の候補を紹介します。'}</p>
                 </div>
               </div>
               <div className="detail-related-links">
-                {popularSeries
-                  .filter((work) => work.type === detailWork.type && seriesKey(work.type, work.title) !== detailSeriesKey)
-                  .slice(0, 6)
-                  .map((work) => (
-                    <a key={`detail-related-${work.type}-${work.title}`} href={seriesHref(work)}>
-                      <span>{work.type === 'manga' ? '漫画' : '小説'}</span>
-                      <strong>{work.title}</strong>
-                      <small>{work.author}</small>
-                      <ChevronRight size={16} />
-                    </a>
-                  ))}
+                {detailRecommendations.map((work) => (
+                  <a key={`detail-related-${work.type || detailWork.type}-${work.title}`} href={seriesHref({ type: work.type || detailWork.type, title: work.title })}>
+                    <span>{work.genre || work.category || (detailWork.type === 'manga' ? '漫画' : '小説')}</span>
+                    <strong>{work.title}</strong>
+                    <small>{work.author}{work.volumes ? ` ・ ${work.volumes}` : ''}</small>
+                    <ChevronRight size={16} />
+                  </a>
+                ))}
               </div>
             </section>
           </div>
