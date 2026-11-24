@@ -913,11 +913,13 @@ export default function App() {
 
   useEffect(() => {
     const origin = 'https://yomipic.vercel.app'
-    const homeTitle = 'ヨミピク｜漫画・小説の人気ランキング・感想・読みたい本棚'
-    const homeDescription = 'ヨミピクは、漫画・小説を検索し、みんなの感想や評価、人気ランキングから次に読む一冊を探せる読書コミュニティ。気になる作品は「読みたい本棚」に保存できます。'
+    const homeTitle = 'ヨミピク｜漫画を人気・完結・巻数・ジャンルから探す'
+    const homeDescription = '次に読む漫画をすぐ決めたい人へ。2026年の人気作品、完結漫画、巻数、一気読み、恋愛・ミステリーなどの条件からおすすめを探せます。小説検索や読みたい本棚にも対応。'
     const searchLabel = query ? searchPageLabel(query, type) : ''
     const rankingLabel = pageRoute.type === 'novel' ? '小説' : '漫画'
-    const rankingDescription = `${rankingLabel}の人気作品をタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。`
+    const rankingDescription = pageRoute.type === 'manga'
+      ? '2026年のおすすめ漫画30作品を紹介。オリコンの読者10,564人調査を初期順位の参考にし、ヨミピク内の「読みたい」と感想も反映します。完結・ジャンル別の探し方にも対応。'
+      : '小説の人気作品をタイトル単位で紹介。公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映しています。'
     const themeDescription = pageRoute.kind === 'theme' && pageRoute.topic
       ? `${pageRoute.topic.label}のおすすめ・定番作品を探せます。${pageRoute.topic.description} 感想や「読みたい」数もチェックできます。`
       : ''
@@ -939,7 +941,9 @@ export default function App() {
     const pageTitle = detailWork
       ? `${seriesName}の感想・評価｜ヨミピク`
       : pageRoute.kind === 'ranking'
-        ? `${rankingLabel}人気ランキング｜おすすめ作品・感想｜ヨミピク`
+        ? pageRoute.type === 'manga'
+          ? '漫画おすすめランキング2026｜人気作品30選・完結/ジャンル別｜ヨミピク'
+          : '小説人気ランキング30選｜おすすめ作品・感想｜ヨミピク'
         : pageRoute.kind === 'theme' && pageRoute.topic
           ? `${pageRoute.topic.label}おすすめ・人気作品｜ヨミピク`
           : pageRoute.kind === 'guide' && pageRoute.guide
@@ -1470,10 +1474,10 @@ export default function App() {
         </a>
 
         <nav className="desktop-nav" aria-label="メインメニュー">
-          <a href={rankingHref('manga')} onClick={(event) => navigateRanking(event, 'manga')}>漫画ランキング</a>
-          <a href={rankingHref('novel')} onClick={(event) => navigateRanking(event, 'novel')}>小説ランキング</a>
-          <a href="/#discover">人気テーマ</a>
-          <a href="/#reviews">みんなの感想</a>
+          <a href={rankingHref('manga')} onClick={(event) => navigateRanking(event, 'manga')}>おすすめ漫画</a>
+          <a href="/guide/manga/completed">完結漫画</a>
+          <a href="/#discover">ジャンルから探す</a>
+          <a href="/#bookshelf">本棚</a>
         </nav>
 
         <button className="header-action" onClick={() => {
@@ -1489,7 +1493,7 @@ export default function App() {
       </header>
 
       <main id="top">
-        <section className="hero">
+        <section className={`hero ${pageRoute.kind === 'home' ? 'home-hero' : ''}`}>
           <div className="hero-inner">
             <div className="eyebrow"><Sparkles size={16} /> みんなの「読んだ」が、次の一冊につながる。</div>
             {pageRoute.kind === 'ranking' ? (
@@ -1516,8 +1520,9 @@ export default function App() {
               )
             ) : (
               <>
-                <h1>次に読む一冊が、<br /><span>きっと見つかる。</span></h1>
-                <p>漫画と小説の人気ランキングをチェック。読んだ作品には、気軽にひとこと感想を残せます。</p>
+                <div className="home-year-badge">2026年版・人気作品を更新</div>
+                <h1>次に読む漫画、<br /><span>30秒で決める。</span></h1>
+                <p>人気ランキング、完結済み、巻数、ジャンルからすぐ選べる。迷ったら上位作品から、こだわるなら条件から。小説も検索できます。</p>
               </>
             )}
 
@@ -1536,25 +1541,98 @@ export default function App() {
             </form>
 
             <div className="hero-chips">
-              <span>人気テーマ:</span>
-              {discoveryTopics.filter((topic) => topic.type === type).slice(0, 5).map((topic) => (
-                <a
-                  key={`hero-${topic.type}-${topic.slug}`}
-                  href={topicHref(topic)}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    searchBooks(null, topic.query, topic.type)
-                  }}
-                >
-                  {topic.label}
-                </a>
-              ))}
+              {pageRoute.kind === 'home' ? (
+                <>
+                  <span>すぐ探す:</span>
+                  <a href="/guide/manga/completed">✅ 完結漫画</a>
+                  <a href="/guide/manga/short">⏱ 10巻前後・短め</a>
+                  <a href="/guide/manga/binge">📚 一気読み</a>
+                  <a href="/theme/manga/romance">💕 恋愛</a>
+                  <a href="/theme/manga/mystery">🔎 ミステリー</a>
+                </>
+              ) : (
+                <>
+                  <span>人気テーマ:</span>
+                  {discoveryTopics.filter((topic) => topic.type === type).slice(0, 5).map((topic) => (
+                    <a
+                      key={`hero-${topic.type}-${topic.slug}`}
+                      href={topicHref(topic)}
+                      onClick={(event) => {
+                        event.preventDefault()
+                        searchBooks(null, topic.query, topic.type)
+                      }}
+                    >
+                      {topic.label}
+                    </a>
+                  ))}
+                </>
+              )}
             </div>
+
+            {pageRoute.kind === 'home' && works.length > 0 && (
+              <div className="home-top-preview" aria-label="2026年おすすめ漫画上位3作品">
+                <div className="home-top-preview-label">
+                  <Flame size={16} />
+                  <span>今、まず見る3作品</span>
+                </div>
+                {works.slice(0, 3).map((work, index) => (
+                  <a
+                    key={`hero-top-${work.id || work.title}`}
+                    href={detailHref(work)}
+                    onClick={(event) => { event.preventDefault(); openDetail(work) }}
+                  >
+                    <b>{index + 1}</b>
+                    <Cover work={work} small />
+                    <div>
+                      <small>{work.genre || '漫画'}</small>
+                      <strong>{work.title}</strong>
+                    </div>
+                    <ChevronRight size={15} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="hero-orb orb-one" />
           <div className="hero-orb orb-two" />
         </section>
+
+        {pageRoute.kind === 'home' && !hasSearched && (
+          <section className="home-choice-hub" aria-labelledby="home-choice-title">
+            <div className="home-choice-heading">
+              <span>CHOOSE FAST</span>
+              <h2 id="home-choice-title">「何を読む？」から探す。</h2>
+              <p>人気サイトのように、作品名を知らなくても条件だけで次の漫画にたどり着ける入口をまとめました。</p>
+            </div>
+            <div className="home-choice-grid">
+              <a className="choice-card choice-featured" href="/ranking/manga">
+                <span>🏆 王道</span><strong>2026年 人気漫画TOP30</strong><p>まずはみんなが選んだ人気作から。</p><ChevronRight size={18} />
+              </a>
+              <a className="choice-card" href="/guide/manga/completed">
+                <span>✅ 待たずに読める</span><strong>完結漫画30選</strong><p>全巻数つき。最後まで一気に読める。</p><ChevronRight size={18} />
+              </a>
+              <a className="choice-card" href="/guide/manga/short">
+                <span>⏱ 時間がない</span><strong>短く読める漫画</strong><p>少ない巻数・短編から選ぶ。</p><ChevronRight size={18} />
+              </a>
+              <a className="choice-card" href="/guide/manga/binge">
+                <span>📚 沼りたい</span><strong>一気読みしたい漫画</strong><p>続きが気になる作品をまとめてチェック。</p><ChevronRight size={18} />
+              </a>
+              <a className="choice-card" href="/theme/manga/romance">
+                <span>💕 ときめきたい</span><strong>恋愛漫画</strong><p>胸キュン・ラブコメ・青春恋愛。</p><ChevronRight size={18} />
+              </a>
+              <a className="choice-card" href="/theme/manga/mystery">
+                <span>🔎 先が気になる</span><strong>ミステリー漫画</strong><p>謎解き・事件・サスペンス。</p><ChevronRight size={18} />
+              </a>
+            </div>
+            <div className="home-trust-row">
+              <div><strong>30</strong><span>人気ランキング掲載</span></div>
+              <div><strong>30</strong><span>完結漫画＋巻数</span></div>
+              <div><strong>3</strong><span>人気・急上昇・高評価</span></div>
+              <div><strong>無料</strong><span>本棚・読書記録</span></div>
+            </div>
+          </section>
+        )}
 
         {pageRoute.kind !== 'home' && (
           <nav className="breadcrumbs" aria-label="パンくず">
@@ -1777,13 +1855,26 @@ export default function App() {
           <div className="section-top">
             <div>
               <span className="section-kicker">RANKING</span>
-              <h2>ヨミピク人気ランキング</h2>
-              <p>{rankingIsEmpty ? 'ランキングを準備しています。' : '巻ごとではなく作品タイトル単位で集計し、公開ランキング・販売動向を参考にした初期順位へヨミピク内の「読みたい」と感想を反映します。'}</p>
+              <h2>{type === 'manga' ? '2026年 おすすめ漫画ランキング' : '小説人気ランキング'}</h2>
+              <p>{rankingIsEmpty
+                ? 'ランキングを準備しています。'
+                : type === 'manga'
+                  ? '読者10,564人の2026年オリコン調査を初期順位の参考に、ヨミピク内の「読みたい」と感想を加えて並べています。'
+                  : '公開ランキング・販売動向を参考にした初期順位へ、ヨミピク内の「読みたい」と感想を反映します。'}</p>
               <div className="ranking-sources">
                 参考：
-                <a href="https://booklive.jp/feature/index/id/firsthalf" target="_blank" rel="noreferrer">BookLive 2026年上半期</a>
-                <span>・</span>
-                <a href="https://www.oricon.co.jp/special/73240/" target="_blank" rel="noreferrer">ORICON 2025年間本ランキング</a>
+                {type === 'manga' ? (
+                  <>
+                    <a href="https://life.oricon.co.jp/rank-manga-apps/special/column/comic-ranking/" target="_blank" rel="noreferrer">オリコン 2026おすすめ漫画調査</a>
+                    <span>・</span><span>ヨミピク内の反応</span>
+                  </>
+                ) : (
+                  <>
+                    <a href="https://booklive.jp/feature/index/id/firsthalf" target="_blank" rel="noreferrer">BookLive 2026年上半期</a>
+                    <span>・</span>
+                    <a href="https://www.oricon.co.jp/special/73240/" target="_blank" rel="noreferrer">ORICON 2025年間本ランキング</a>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1834,7 +1925,7 @@ export default function App() {
                     <Cover work={work} />
                   </a>
                   <div className="work-body">
-                    <div className="work-meta">{work.seeded ? '定番候補 ・ ' : ''}{work.genre}</div>
+                    <div className="work-meta">{work.seeded ? (work.type === 'manga' ? '2026人気候補 ・ ' : '定番候補 ・ ') : ''}{work.genre}</div>
                     <a className="work-title-button" href={detailHref(work)} onClick={(event) => { event.preventDefault(); openDetail(work) }}>{work.title}</a>
                     <p className="author">{work.author}</p>
                     <p className="tagline">{work.tagline}</p>
