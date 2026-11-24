@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 import { staticSeoItems } from './seo-static-data.js'
+import { completedMangaPicks, completedIntentGuides } from './completed-manga-data.js'
 
-const seriesPages = [
+const baseSeriesPages = [
   ['manga', 'キングダム', '原泰久'],
   ['manga', '葬送のフリーレン', '山田鐘人'],
   ['manga', 'ONE PIECE', '尾田栄一郎'],
@@ -34,6 +35,18 @@ const seriesPages = [
   author,
 }))
 
+const seriesPages = [
+  ...baseSeriesPages,
+  ...completedMangaPicks.map((work) => ({
+    path: `series/manga/${work.title}`,
+    title: `${work.title}の感想・評価｜ヨミピク`,
+    description: `${work.title}（${work.author}）の感想・評価をチェック。完結${work.volumes}の情報やレビュー、「読みたい」数から次に読む漫画を探せます。`,
+    type: 'manga',
+    workTitle: work.title,
+    author: work.author,
+  })),
+].filter((page, index, pages) => pages.findIndex((item) => item.path === page.path) === index)
+
 const seoPages = [
   {
     path: 'ranking/manga',
@@ -62,7 +75,13 @@ const seoPages = [
   { path: 'theme/novel/sf', title: 'SF小説おすすめ・人気作品｜ヨミピク', description: '宇宙、未来、科学をテーマにした国内外の人気SF小説・定番作品を紹介します。' },
   { path: 'theme/novel/horror', title: 'ホラー小説おすすめ・人気作品｜ヨミピク', description: '怪談、心理恐怖、異常な日常を描く人気ホラー小説・定番作品を紹介します。' },
   { path: 'theme/novel/historical', title: '歴史小説おすすめ・人気作品｜ヨミピク', description: '戦国・幕末など歴史の人物や時代を描いた人気の歴史小説・定番作品を紹介します。' },
-  { path: 'guide/manga/completed', title: '完結漫画おすすめランキング30選｜一気読みできる名作・人気作品【2026年】｜ヨミピク', description: '完結漫画のおすすめランキング30作品を全巻数つきで紹介。名作、一気読みしやすい作品、比較的短く読める作品、恋愛・青春など目的別にも探せます。掲載順はヨミピク独自のおすすめ順です。', modified: '2026-10-23' },
+  { path: 'guide/manga/completed', title: '完結漫画おすすめランキング100選｜全巻数・ジャンル別【2026年】｜ヨミピク', description: '完結漫画100作品を巻数・ジャンル・一気読み向けなどから比較して選べます。全巻数つき、最大3作品の比較にも対応。', modified: '2026-11-24' },
+  ...completedIntentGuides.map((guide) => ({
+    path: `guide/manga/${guide.slug}`,
+    title: guide.seoTitle,
+    description: guide.metaDescription,
+    modified: '2026-11-24',
+  })),
   { path: 'guide/manga/binge', title: '一気読みしたい漫画おすすめ｜ヨミピク', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を中心に紹介します。' },
   { path: 'guide/manga/college', title: '大学生におすすめの漫画｜ヨミピク', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を紹介します。' },
   { path: 'guide/manga/short', title: '短く読める漫画おすすめ｜少ない巻数・短編作品｜ヨミピク', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を紹介します。' },
@@ -98,7 +117,7 @@ function relatedLinks(page) {
       ]
     : [
         ['/ranking/manga', '漫画人気ランキング30選'],
-        ['/guide/manga/completed', '完結漫画おすすめランキング30選'],
+        ['/guide/manga/completed', '完結漫画おすすめランキング100選'],
         ['/theme/manga/romance', '恋愛漫画'],
         ['/theme/manga/fantasy', 'ファンタジー漫画'],
         ['/guide/manga/college', '大学生におすすめの漫画'],
@@ -175,7 +194,7 @@ function staticSeoPages() {
 
         const fallbackTitle = breadcrumbLabel
         const listTitle = page.path === 'guide/manga/completed'
-          ? '完結漫画おすすめランキング30選'
+          ? '完結漫画おすすめランキング100選'
           : page.path.startsWith('ranking/')
           ? '30位までの掲載作品'
           : page.path.startsWith('series/')
@@ -188,7 +207,7 @@ function staticSeoPages() {
           .map(([href, label]) => `<a href="${href}" style="display:inline-block;color:#6d28d9;font-weight:700;margin:0 14px 10px 0">${escapeHtml(label)}</a>`)
           .join('')
         const extraCopy = page.path === 'guide/manga/completed'
-          ? '完結漫画は最終話まで待たずに読めるのが魅力です。30作品すべてに全巻数を掲載し、名作、一気読みしやすい作品、比較的短く読み切りやすい作品、恋愛・青春作品などから選べます。巻数は原則として通常コミックス版を基準にしており、新装版・愛蔵版・文庫版などでは異なる場合があります。'
+          ? '完結漫画は最終話まで待たずに読めるのが魅力です。100作品すべてに巻数を掲載し、名作、一気読みしやすい作品、比較的短く読み切りやすい作品、恋愛・青春作品などから選べます。巻数は原則として通常コミックス版を基準にしており、新装版・愛蔵版・文庫版などでは異なる場合があります。'
           : page.path.startsWith('ranking/')
           ? 'ヨミピクでは巻ごとではなく作品タイトル単位でまとめています。公開されている人気情報を初期の参考にしながら、サイト内の「読みたい」や感想の反応もランキングに加えています。'
           : page.path.startsWith('series/')

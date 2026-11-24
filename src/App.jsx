@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { completedMangaPicks, completedIntentGuides } from '../completed-manga-data.js'
 import {
   BookOpen,
   Search,
@@ -64,7 +65,8 @@ const popularSeries = [
 ]
 
 const intentGuides = [
-  { slug: 'completed', label: '完結漫画おすすめランキング30選', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後まで読める完結済み漫画から、王道バトル・スポーツ・恋愛・ミステリーまで一気読みしたい名作30作品を厳選しました。' },
+  { slug: 'completed', label: '完結漫画おすすめランキング100選', query: '完結漫画', type: 'manga', emoji: '✅', description: '最後まで読める完結済み漫画100作品を、巻数・ジャンル・読み方から比較して選べます。' },
+  ...completedIntentGuides.map(({ titles, seoTitle, metaDescription, ...guide }) => guide),
   { slug: 'binge', label: '一気読みしたい漫画', query: '一気読み漫画', type: 'manga', emoji: '📚', description: '続きが気になって止まりにくい、テンポよく読み進めやすい漫画を集めました。' },
   { slug: 'college', label: '大学生におすすめ漫画', query: '大学生漫画', type: 'manga', emoji: '🎓', description: '進路、人間関係、挑戦や成長など、大学生にも刺さりやすいテーマの漫画を選びました。' },
   { slug: 'short', label: '短く読める漫画', query: '短編漫画', type: 'manga', emoji: '⏱️', description: '少ない巻数や短編で読み切りやすく、初めてでも手に取りやすい漫画を集めました。' },
@@ -75,38 +77,6 @@ const intentGuides = [
 
 ]
 
-const completedMangaPicks = [
-  { title: "鋼の錬金術師", author: "荒川弘", category: "王道ファンタジー", note: "伏線と成長を最後まで楽しみたい人に。", volumes: "全27巻", volumeNote: "" },
-  { title: "進撃の巨人", author: "諫山創", category: "ダークファンタジー", note: "壮大な謎と伏線を一気に回収したい人に。", volumes: "全34巻", volumeNote: "" },
-  { title: "SLAM DUNK", author: "井上雄彦", category: "スポーツ", note: "熱い青春と試合の緊張感を味わえる定番。", volumes: "全31巻", volumeNote: "通常コミックス版（完全版24巻・新装再編版20巻）" },
-  { title: "ハイキュー!!", author: "古舘春一", category: "スポーツ", note: "チームの成長と青春を最後まで追える名作。", volumes: "全45巻", volumeNote: "" },
-  { title: "鬼滅の刃", author: "吾峠呼世晴", category: "バトル", note: "家族と仲間の物語をテンポよく読み進めたい人に。", volumes: "全23巻", volumeNote: "" },
-  { title: "呪術廻戦", author: "芥見下々", category: "バトル", note: "緊張感のある戦いとダークな世界観が好きな人に。", volumes: "全30巻＋0巻", volumeNote: "0巻は前日譚" },
-  { title: "僕のヒーローアカデミア", author: "堀越耕平", category: "ヒーロー", note: "成長と王道ヒーロー物語をまとめて楽しめる。", volumes: "全42巻", volumeNote: "" },
-  { title: "NARUTO―ナルト―", author: "岸本斉史", category: "バトル", note: "友情と成長を軸にした長編王道漫画。", volumes: "全72巻", volumeNote: "" },
-  { title: "BLEACH", author: "久保帯人", category: "バトル", note: "スタイリッシュな能力バトルを長く楽しみたい人に。", volumes: "全74巻", volumeNote: "" },
-  { title: "銀魂", author: "空知英秋", category: "コメディ", note: "笑いとシリアスの振れ幅を楽しめる長編。", volumes: "全77巻", volumeNote: "" },
-  { title: "ゴールデンカムイ", author: "野田サトル", category: "冒険・歴史", note: "冒険、歴史、グルメ、笑いが詰まった一気読み向け。", volumes: "全31巻", volumeNote: "" },
-  { title: "DEATH NOTE", author: "大場つぐみ・小畑健", category: "サスペンス", note: "頭脳戦を短めの巻数で濃く楽しみたい人に。", volumes: "全12巻", volumeNote: "本編コミックス（13巻は公式解析マニュアル）" },
-  { title: "寄生獣", author: "岩明均", category: "SF・サスペンス", note: "人間とは何かを考えさせる読み応えのある名作。", volumes: "全10巻", volumeNote: "通常コミックス版" },
-  { title: "ダンジョン飯", author: "九井諒子", category: "ファンタジー", note: "世界観と伏線を最後まで味わえる異色ファンタジー。", volumes: "全14巻", volumeNote: "" },
-  { title: "Dr.STONE", author: "稲垣理一郎・Boichi", category: "SF・冒険", note: "科学と冒険をテンポよく楽しみたい人に。", volumes: "27巻まで", volumeNote: "26巻で本編完結・27巻は続編エピソード" },
-  { title: "四月は君の嘘", author: "新川直司", category: "青春", note: "音楽と青春の感動作を最後まで読み切りたい人に。", volumes: "全11巻", volumeNote: "通常コミックス版" },
-  { title: "約束のネバーランド", author: "白井カイウ・出水ぽすか", category: "サスペンス", note: "先が気になる展開で一気読みしやすい。", volumes: "全20巻", volumeNote: "本編" },
-  { title: "暗殺教室", author: "松井優征", category: "学園", note: "笑いと成長、卒業までをきれいに味わえる。", volumes: "全21巻", volumeNote: "" },
-  { title: "僕だけがいない街", author: "三部けい", category: "ミステリー", note: "比較的短く、謎の続きが気になる一気読み向け。", volumes: "全9巻", volumeNote: "9巻は外伝" },
-  { title: "サマータイムレンダ", author: "田中靖規", category: "サスペンス", note: "ループと謎解きが好きな人におすすめ。", volumes: "全13巻", volumeNote: "" },
-  { title: "彼方のアストラ", author: "篠原健太", category: "SF", note: "短めの巻数で伏線回収まで楽しめる。", volumes: "全5巻", volumeNote: "" },
-  { title: "聲の形", author: "大今良時", category: "青春・人間ドラマ", note: "人との向き合い方を描く短めの感動作。", volumes: "全7巻", volumeNote: "" },
-  { title: "君に届け", author: "椎名軽穂", category: "恋愛", note: "王道の青春恋愛を結末まで見届けたい人に。", volumes: "全30巻", volumeNote: "本編" },
-  { title: "ちはやふる", author: "末次由紀", category: "青春・競技", note: "競技かるたと成長、恋をじっくり楽しめる。", volumes: "全50巻", volumeNote: "本編" },
-  { title: "かぐや様は告らせたい", author: "赤坂アカ", category: "ラブコメ", note: "笑える恋愛頭脳戦を最後まで楽しみたい人に。", volumes: "全28巻", volumeNote: "" },
-  { title: "のだめカンタービレ", author: "二ノ宮知子", category: "音楽・恋愛", note: "音楽と恋愛の両方を楽しめる人気作。", volumes: "全25巻", volumeNote: "通常コミックス版" },
-  { title: "フルーツバスケット", author: "高屋奈月", category: "恋愛・人間ドラマ", note: "家族や心の傷を描く長く愛される完結作。", volumes: "全23巻", volumeNote: "通常コミックス版" },
-  { title: "銀の匙 Silver Spoon", author: "荒川弘", category: "青春", note: "進路や働くことを考えながら楽しめる青春漫画。", volumes: "全15巻", volumeNote: "" },
-  { title: "モブサイコ100", author: "ONE", category: "成長・バトル", note: "能力バトルと主人公の成長を最後まで楽しめる。", volumes: "全16巻", volumeNote: "" },
-  { title: "チ。―地球の運動について―", author: "魚豊", category: "歴史・ドラマ", note: "濃密なテーマと物語を短い巻数で味わえる。", volumes: "全8巻", volumeNote: "" },
-]
 
 const completedMangaGroups = [
   {
@@ -622,6 +592,19 @@ export default function App() {
     [compareTitles],
   )
 
+  const activeCompletedIntentGuide = pageRoute.kind === 'guide'
+    ? completedIntentGuides.find((guide) => guide.slug === pageRoute.guide?.slug)
+    : null
+
+  const activeCompletedIntentPicks = useMemo(
+    () => activeCompletedIntentGuide
+      ? activeCompletedIntentGuide.titles
+          .map((title) => completedMangaPicks.find((work) => work.title === title))
+          .filter(Boolean)
+      : [],
+    [activeCompletedIntentGuide],
+  )
+
   const searchSuggestions = useMemo(() => {
     const term = query.trim().normalize('NFKC').toLowerCase()
     if (!term) return []
@@ -1060,10 +1043,13 @@ export default function App() {
       ? `${pageRoute.topic.label}のおすすめ・定番作品を探せます。${pageRoute.topic.description} 感想や「読みたい」数もチェックできます。`
       : ''
     const isCompletedMangaGuide = pageRoute.kind === 'guide' && pageRoute.guide?.type === 'manga' && pageRoute.guide?.slug === 'completed'
+    const completedIntentSeo = pageRoute.kind === 'guide'
+      ? completedIntentGuides.find((guide) => guide.slug === pageRoute.guide?.slug)
+      : null
     const guideDescription = pageRoute.kind === 'guide' && pageRoute.guide
       ? isCompletedMangaGuide
-        ? '完結漫画のおすすめランキング30作品を、全巻数つきで紹介。名作、一気読みしやすい作品、比較的短く読める作品、恋愛・青春など目的別にも探せます。掲載順はヨミピク独自のおすすめ順です。'
-        : `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
+        ? '完結漫画のおすすめランキング100作品を、全巻数つきで紹介。名作、一気読み、短い作品、恋愛・青春など目的別に絞り込み・比較できます。'
+        : completedIntentSeo?.metaDescription || `${pageRoute.guide.label}を探す特集ページ。${pageRoute.guide.description} 感想や「読みたい」数も比較できます。`
       : ''
     const seriesName = detailWork?.seriesTitle || detailWork?.title || (pageRoute.kind === 'series' ? pageRoute.title : '')
     const seriesDescription = seriesName
@@ -1084,8 +1070,8 @@ export default function App() {
           ? `${pageRoute.topic.label}おすすめ・人気作品｜ヨミピク`
           : pageRoute.kind === 'guide' && pageRoute.guide
             ? isCompletedMangaGuide
-              ? '完結漫画おすすめランキング30選｜一気読みできる名作・人気作品【2026年】｜ヨミピク'
-              : `${pageRoute.guide.label}｜おすすめ作品特集｜ヨミピク`
+              ? '完結漫画おすすめランキング100選｜全巻数・ジャンル別【2026年】｜ヨミピク'
+              : completedIntentSeo?.seoTitle || `${pageRoute.guide.label}｜おすすめ作品特集｜ヨミピク`
             : pageRoute.kind === 'series' && pageRoute.title
               ? `${pageRoute.title}の感想・評価｜ヨミピク`
               : hasSearched && query
@@ -1702,8 +1688,8 @@ export default function App() {
             ) : pageRoute.kind === 'guide' && pageRoute.guide ? (
               pageRoute.guide.type === 'manga' && pageRoute.guide.slug === 'completed' ? (
                 <>
-                  <h1>完結漫画おすすめランキング30選<br /><span>名作を最後まで一気読み。</span></h1>
-                  <p>完結済みの人気漫画から、王道バトル・スポーツ・恋愛・ミステリーまで厳選。次に読む完結漫画を探せます。</p>
+                  <h1>完結漫画おすすめランキング100選<br /><span>名作を最後まで一気読み。</span></h1>
+                  <p>完結済み100作品を、巻数・ジャンル・一気読み向けなどから絞り込み。気になる作品は最大3作まで比較できます。</p>
                 </>
               ) : (
                 <>
@@ -1858,7 +1844,7 @@ export default function App() {
                 <span>🏆 王道</span><strong>2026年 人気漫画TOP30</strong><p>まずは人気作から選ぶ。</p><ChevronRight size={18} />
               </a>
               <a className="choice-card" href="/guide/manga/completed">
-                <span>✅ 待たずに読める</span><strong>完結漫画30選</strong><p>全巻数つき。最大3作品を比較できます。</p><ChevronRight size={18} />
+                <span>✅ 待たずに読める</span><strong>完結漫画100選</strong><p>全巻数つき。最大3作品を比較できます。</p><ChevronRight size={18} />
               </a>
               <a className="choice-card" href="/guide/manga/short">
                 <span>⏱ 時間がない</span><strong>短く読める漫画</strong><p>少ない巻数・短編から選ぶ。</p><ChevronRight size={18} />
@@ -1872,7 +1858,7 @@ export default function App() {
             </div>
             <div className="home-trust-row">
               <div><strong>3問</strong><span>漫画おすすめ診断</span></div>
-              <div><strong>30</strong><span>完結漫画＋全巻数</span></div>
+              <div><strong>100</strong><span>完結漫画＋全巻数</span></div>
               <div><strong>3冊</strong><span>同時に作品比較</span></div>
               <div><strong>無料</strong><span>本棚・読書記録</span></div>
             </div>
@@ -1885,7 +1871,7 @@ export default function App() {
               <div>
                 <span className="section-kicker">3 QUESTIONS</span>
                 <h2 id="diagnosis-title">3問で、次に読む漫画を決める。</h2>
-                <p>ヨミピクの完結漫画30作品から、今の気分に合う3作品を選びます。答えはいつでも変更できます。</p>
+                <p>ヨミピクの完結漫画100作品から、今の気分に合う3作品を選びます。答えはいつでも変更できます。</p>
               </div>
               {diagnosisReady && (
                 <button type="button" onClick={() => {
@@ -2105,12 +2091,49 @@ export default function App() {
               </div>
             )}
 
+            {activeCompletedIntentGuide && activeCompletedIntentPicks.length > 0 && (
+              <section className="completed-intent-landing" aria-labelledby="completed-intent-title">
+                <div className="completed-intent-head">
+                  <span className="section-kicker">COMPLETED PICKS</span>
+                  <h2 id="completed-intent-title">{activeCompletedIntentGuide.label}</h2>
+                  <p>{activeCompletedIntentGuide.description}</p>
+                  <div className="completed-intent-links">
+                    <a href="/guide/manga/completed">完結漫画100選をすべて見る</a>
+                    {completedIntentGuides.filter((guide) => guide.slug !== activeCompletedIntentGuide.slug).map((guide) => (
+                      <a key={guide.slug} href={guideHref(guide)}>{guide.emoji} {guide.label}</a>
+                    ))}
+                  </div>
+                </div>
+                <div className="completed-intent-grid">
+                  {activeCompletedIntentPicks.map((work, index) => {
+                    const comparing = compareTitles.includes(work.title)
+                    return (
+                      <article key={work.title} className={`completed-intent-card ${comparing ? 'comparing' : ''}`}>
+                        <b>{index + 1}</b>
+                        <small>{work.category} ・ {work.volumes}</small>
+                        <h3>{work.title}</h3>
+                        <span>{work.author}</span>
+                        <p>{work.note}</p>
+                        <div>
+                          <a href={seriesHref({ type: 'manga', title: work.title })}>作品を見る <ChevronRight size={14} /></a>
+                          <button type="button" className={comparing ? 'selected' : ''} disabled={!comparing && compareTitles.length >= 3} onClick={() => toggleCompare(work)}>
+                            {comparing ? '比較中 ✓' : '比較に追加'}
+                          </button>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} />
+              </section>
+            )}
+
             {pageRoute.kind === 'guide' && pageRoute.guide?.type === 'manga' && pageRoute.guide?.slug === 'completed' && (
               <section className="completed-guide-section" aria-labelledby="completed-30-title">
                 <div className="completed-guide-head">
-                  <span className="section-kicker">COMPLETE MANGA 30</span>
-                  <h2 id="completed-30-title">完結漫画おすすめランキング30選</h2>
-                  <p>完結済みの名作・人気作をジャンル横断で30作品紹介します。掲載順は売上順位ではなく、定番度・一気読みしやすさ・ジャンルのバランスを考えたヨミピク独自のおすすめ順です。</p>
+                  <span className="section-kicker">COMPLETE MANGA 100</span>
+                  <h2 id="completed-30-title">完結漫画おすすめランキング100選</h2>
+                  <p>完結済みの名作・人気作をジャンル横断で100作品紹介します。巻数・ジャンル・並び順で絞り込み、最大3作品まで比較できます。</p>
                   <p className="completed-volume-basis">巻数は原則として通常コミックス版を基準にしています。新装版・愛蔵版・文庫版などは巻数が異なる場合があります。</p>
                 </div>
                 <div className="completed-filter-bar" aria-label="完結漫画の絞り込み">
@@ -2143,8 +2166,8 @@ export default function App() {
                     </select>
                   </label>
                   <strong>{filteredCompletedMangaPicks.length}作品</strong>
-                  {(completedVolumeFilter !== 'all' || completedGenreFilter !== 'all') && (
-                    <button type="button" onClick={() => { setCompletedVolumeFilter('all'); setCompletedGenreFilter('all') }}>絞り込みを解除</button>
+                  {(completedVolumeFilter !== 'all' || completedGenreFilter !== 'all' || completedSort !== 'rank') && (
+                    <button type="button" onClick={() => { setCompletedVolumeFilter('all'); setCompletedGenreFilter('all'); setCompletedSort('rank') }}>絞り込みを解除</button>
                   )}
                 </div>
                 <div className="completed-pick-grid">
@@ -2219,6 +2242,10 @@ export default function App() {
                   <a href="/theme/manga/romance">💕 恋愛漫画</a>
                   <a href="/theme/manga/mystery">🔎 ミステリー漫画</a>
                   <a href="/ranking/manga">🏆 漫画人気ランキング30選</a>
+                  <a href="/guide/manga/completed-short">⚡ 10巻以内</a>
+                  <a href="/guide/manga/completed-masterpiece">🏆 名作完結漫画</a>
+                  <a href="/guide/manga/completed-binge">📚 一気読み完結漫画</a>
+                  <a href="/guide/manga/completed-romance">💕 恋愛完結漫画</a>
                 </div>
               </section>
             )}
@@ -2388,7 +2415,7 @@ export default function App() {
             {type === 'manga' && (
               <a className="ranking-completed-link" href="/guide/manga/completed">
                 <span>✅ 完結作品から選びたい人へ</span>
-                <strong>完結漫画おすすめランキング30選を見る</strong>
+                <strong>完結漫画おすすめランキング100選を見る</strong>
                 <ChevronRight size={18} />
               </a>
             )}
