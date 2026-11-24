@@ -51,6 +51,7 @@ function detailUrl(row) {
 }
 
 const STATIC_LASTMOD = '2026-10-06'
+const HOME_LASTMOD = '2026-11-24'
 const landingLastmod = (path) => {
   if (path === '/ranking/manga') return '2026-11-24'
   if (path === '/guide/manga/completed') return '2026-10-23'
@@ -140,7 +141,7 @@ export default async function handler(req, res) {
     }
 
     const urls = [
-      urlEntry('https://yomipic.vercel.app/', { lastmod: STATIC_LASTMOD, changefreq: 'weekly', priority: '1.0' }),
+      urlEntry('https://yomipic.vercel.app/', { lastmod: HOME_LASTMOD, changefreq: 'weekly', priority: '1.0' }),
       ...landingPages.map((path) => urlEntry(landingUrl(path), { lastmod: landingLastmod(path), priority: path.startsWith('/ranking/') ? '0.9' : '0.8' })),
       ...staticSeriesPages.map((path) => urlEntry(landingUrl(path), { lastmod: STATIC_LASTMOD, priority: '0.8' })),
       ...[...detailPages.entries()].filter(([url]) => !staticSeriesPages.some((path) => landingUrl(path) === url)).map(([url, date]) =>

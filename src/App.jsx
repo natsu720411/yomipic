@@ -412,6 +412,69 @@ function completedVolumeCount(work) {
   return match ? Number(match[0]) : 0
 }
 
+
+function completedLengthLabel(work) {
+  const count = completedVolumeCount(work)
+  if (!count) return '巻数を確認'
+  if (count <= 10) return '短め・読み切りやすい'
+  if (count <= 20) return 'ほどよい長さ'
+  return 'じっくり長編'
+}
+
+function MangaComparison({ works, onRemove, onClear }) {
+  return (
+    <section className="manga-compare-panel" id="manga-compare" aria-labelledby="manga-compare-title">
+      <div className="manga-compare-head">
+        <div>
+          <span>COMPARE</span>
+          <h3 id="manga-compare-title">気になる漫画を比べる</h3>
+          <p>最大3作品。巻数・ジャンル・読みごたえを並べて、次の1冊を決められます。</p>
+        </div>
+        {works.length > 0 && <button type="button" onClick={onClear}>すべて外す</button>}
+      </div>
+
+      {works.length < 2 ? (
+        <div className="manga-compare-empty">
+          <strong>{works.length ? 'あと1作品選ぶと比較できます' : '「比較に追加」を2〜3作品押してください'}</strong>
+          <span>選択中 {works.length}/3</span>
+          {works.length === 1 && (
+            <button type="button" onClick={() => onRemove(works[0])}>「{works[0].title}」を外す</button>
+          )}
+        </div>
+      ) : (
+        <div className="manga-compare-scroll">
+          <div className="manga-compare-grid" style={{ '--compare-count': works.length }}>
+            <div className="compare-labels" aria-hidden="true">
+              <strong>作品</strong>
+              <span>巻数</span>
+              <span>ジャンル</span>
+              <span>読みごたえ</span>
+              <span>こんな人に</span>
+            </div>
+            {works.map((work) => (
+              <article key={work.title} className="compare-work">
+                <div className="compare-work-title">
+                  <small>{work.category}</small>
+                  <strong>{work.title}</strong>
+                  <em>{work.author}</em>
+                </div>
+                <b>{work.volumes}</b>
+                <span>{work.category}</span>
+                <span>{completedLengthLabel(work)}</span>
+                <p>{work.note}</p>
+                <div className="compare-work-actions">
+                  <a href={seriesHref({ type: 'manga', title: work.title })}>作品を見る <ChevronRight size={14} /></a>
+                  <button type="button" onClick={() => onRemove(work)}>外す</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
 export default function App() {
   const [type, setType] = useState('manga')
   const [sort, setSort] = useState('weekly')
@@ -442,6 +505,9 @@ export default function App() {
   })
   const [completedVolumeFilter, setCompletedVolumeFilter] = useState('all')
   const [completedGenreFilter, setCompletedGenreFilter] = useState('all')
+  const [completedSort, setCompletedSort] = useState('rank')
+  const [diagnosisAnswers, setDiagnosisAnswers] = useState({ mood: '', length: '', pace: '' })
+  const [compareTitles, setCompareTitles] = useState([])
   const [sharedReviews, setSharedReviews] = useState([])
   const [sharedSaves, setSharedSaves] = useState([])
   const [starterByType, setStarterByType] = useState({ manga: [], novel: [] })
@@ -485,8 +551,8 @@ export default function App() {
     [readWorks],
   )
 
-  const filteredCompletedMangaPicks = useMemo(
-    () => completedMangaPicks.filter((work) => {
+  const filteredCompletedMangaPicks = useMemo(() => {
+    const filtered = completedMangaPicks.filter((work) => {
       const count = completedVolumeCount(work)
       const volumeMatches =
         completedVolumeFilter === 'all' ||
@@ -499,8 +565,49 @@ export default function App() {
         completedGenreGroup(work.category) === completedGenreFilter
 
       return volumeMatches && genreMatches
-    }),
-    [completedVolumeFilter, completedGenreFilter],
+    })
+
+    if (completedSort === 'short') return [...filtered].sort((a, b) => completedVolumeCount(a) - completedVolumeCount(b))
+    if (completedSort === 'long') return [...filtered].sort((a, b) => completedVolumeCount(b) - completedVolumeCount(a))
+    return filtered
+  }, [completedVolumeFilter, completedGenreFilter, completedSort])
+
+  const diagnosisReady = Boolean(diagnosisAnswers.mood && diagnosisAnswers.length && diagnosisAnswers.pace)
+
+  const diagnosisRecommendations = useMemo(() => {
+    if (!diagnosisReady) return []
+
+    const moodMatch = {
+      hot: /スポーツ|バトル|ヒーロー|冒険/,
+      emotional: /青春|人間ドラマ|音楽|恋愛/,
+      romance: /恋愛|ラブコメ/,
+      mystery: /サスペンス|ミステリー|SF|ダークファンタジー/,
+    }[diagnosisAnswers.mood]
+
+    return completedMangaPicks
+      .map((work, index) => {
+        const count = completedVolumeCount(work)
+        let score = 50 - index * 0.45
+
+        if (moodMatch?.test(work.category)) score += 18
+
+        if (diagnosisAnswers.length === 'short' && count > 0 && count <= 10) score += 16
+        if (diagnosisAnswers.length === 'medium' && count >= 11 && count <= 20) score += 16
+        if (diagnosisAnswers.length === 'long' && count >= 21) score += 16
+
+        if (diagnosisAnswers.pace === 'binge' && /一気|続き|謎|テンポ|伏線/.test(work.note)) score += 12
+        if (diagnosisAnswers.pace === 'deep' && /成長|人間|世界観|じっくり|濃密/.test(work.note)) score += 12
+        if (diagnosisAnswers.pace === 'easy' && count > 0 && count <= 15) score += 10
+
+        return { ...work, diagnosisScore: score }
+      })
+      .sort((a, b) => b.diagnosisScore - a.diagnosisScore)
+      .slice(0, 3)
+  }, [diagnosisAnswers, diagnosisReady])
+
+  const compareWorks = useMemo(
+    () => compareTitles.map((title) => completedMangaPicks.find((work) => work.title === title)).filter(Boolean),
+    [compareTitles],
   )
 
   useEffect(() => {
@@ -913,8 +1020,8 @@ export default function App() {
 
   useEffect(() => {
     const origin = 'https://yomipic.vercel.app'
-    const homeTitle = 'ヨミピク｜漫画を人気・完結・巻数・ジャンルから探す'
-    const homeDescription = '次に読む漫画をすぐ決めたい人へ。2026年の人気作品、完結漫画、巻数、一気読み、恋愛・ミステリーなどの条件からおすすめを探せます。小説検索や読みたい本棚にも対応。'
+    const homeTitle = '漫画おすすめ2026｜3問診断・完結/巻数から30秒で選ぶ｜ヨミピク'
+    const homeDescription = '次に読む漫画を30秒で決めたい人へ。3問の漫画診断、人気ランキング、完結漫画、全巻数、ジャンル、最大3作品の比較からおすすめを探せます。'
     const searchLabel = query ? searchPageLabel(query, type) : ''
     const rankingLabel = pageRoute.type === 'novel' ? '小説' : '漫画'
     const rankingDescription = pageRoute.type === 'manga'
@@ -1129,6 +1236,29 @@ export default function App() {
   const trackEvent = (name, params = {}) => {
     if (typeof window.gtag !== 'function') return
     window.gtag('event', name, params)
+  }
+
+  const toggleCompare = (work) => {
+    const title = work?.title
+    if (!title) return
+
+    const alreadySelected = compareTitles.includes(title)
+    if (!alreadySelected && compareTitles.length >= 3) return
+
+    setCompareTitles((prev) => alreadySelected
+      ? prev.filter((item) => item !== title)
+      : [...prev, title]
+    )
+
+    trackEvent(alreadySelected ? 'yomipic_compare_remove' : 'yomipic_compare_add', {
+      item_name: title,
+      compare_count: alreadySelected ? Math.max(0, compareTitles.length - 1) : compareTitles.length + 1,
+    })
+  }
+
+  const clearComparison = () => {
+    setCompareTitles([])
+    trackEvent('yomipic_compare_clear')
   }
 
   const saveWork = async (work) => {
@@ -1544,11 +1674,12 @@ export default function App() {
               {pageRoute.kind === 'home' ? (
                 <>
                   <span>すぐ探す:</span>
+                  <a href="#manga-diagnosis">✨ 3問診断</a>
                   <a href="/guide/manga/completed">✅ 完結漫画</a>
                   <a href="/guide/manga/short">⏱ 10巻前後・短め</a>
                   <a href="/guide/manga/binge">📚 一気読み</a>
                   <a href="/theme/manga/romance">💕 恋愛</a>
-                  <a href="/theme/manga/mystery">🔎 ミステリー</a>
+                  <a href="/guide/manga/completed#manga-compare">⚖️ 作品比較</a>
                 </>
               ) : (
                 <>
@@ -1606,31 +1737,130 @@ export default function App() {
               <p>人気サイトのように、作品名を知らなくても条件だけで次の漫画にたどり着ける入口をまとめました。</p>
             </div>
             <div className="home-choice-grid">
-              <a className="choice-card choice-featured" href="/ranking/manga">
-                <span>🏆 王道</span><strong>2026年 人気漫画TOP30</strong><p>まずはみんなが選んだ人気作から。</p><ChevronRight size={18} />
+              <a className="choice-card choice-featured" href="#manga-diagnosis">
+                <span>✨ 迷ったらこれ</span><strong>3問で漫画診断</strong><p>気分・長さ・読み方からおすすめ3作品を出します。</p><ChevronRight size={18} />
+              </a>
+              <a className="choice-card" href="/ranking/manga">
+                <span>🏆 王道</span><strong>2026年 人気漫画TOP30</strong><p>まずは人気作から選ぶ。</p><ChevronRight size={18} />
               </a>
               <a className="choice-card" href="/guide/manga/completed">
-                <span>✅ 待たずに読める</span><strong>完結漫画30選</strong><p>全巻数つき。最後まで一気に読める。</p><ChevronRight size={18} />
+                <span>✅ 待たずに読める</span><strong>完結漫画30選</strong><p>全巻数つき。最大3作品を比較できます。</p><ChevronRight size={18} />
               </a>
               <a className="choice-card" href="/guide/manga/short">
                 <span>⏱ 時間がない</span><strong>短く読める漫画</strong><p>少ない巻数・短編から選ぶ。</p><ChevronRight size={18} />
               </a>
               <a className="choice-card" href="/guide/manga/binge">
-                <span>📚 沼りたい</span><strong>一気読みしたい漫画</strong><p>続きが気になる作品をまとめてチェック。</p><ChevronRight size={18} />
+                <span>📚 沼りたい</span><strong>一気読みしたい漫画</strong><p>続きが気になる作品をチェック。</p><ChevronRight size={18} />
               </a>
               <a className="choice-card" href="/theme/manga/romance">
                 <span>💕 ときめきたい</span><strong>恋愛漫画</strong><p>胸キュン・ラブコメ・青春恋愛。</p><ChevronRight size={18} />
               </a>
-              <a className="choice-card" href="/theme/manga/mystery">
-                <span>🔎 先が気になる</span><strong>ミステリー漫画</strong><p>謎解き・事件・サスペンス。</p><ChevronRight size={18} />
-              </a>
             </div>
             <div className="home-trust-row">
-              <div><strong>30</strong><span>人気ランキング掲載</span></div>
-              <div><strong>30</strong><span>完結漫画＋巻数</span></div>
-              <div><strong>3</strong><span>人気・急上昇・高評価</span></div>
+              <div><strong>3問</strong><span>漫画おすすめ診断</span></div>
+              <div><strong>30</strong><span>完結漫画＋全巻数</span></div>
+              <div><strong>3冊</strong><span>同時に作品比較</span></div>
               <div><strong>無料</strong><span>本棚・読書記録</span></div>
             </div>
+          </section>
+        )}
+
+        {pageRoute.kind === 'home' && !hasSearched && (
+          <section className="home-diagnosis" id="manga-diagnosis" aria-labelledby="diagnosis-title">
+            <div className="diagnosis-head">
+              <div>
+                <span className="section-kicker">3 QUESTIONS</span>
+                <h2 id="diagnosis-title">3問で、次に読む漫画を決める。</h2>
+                <p>ヨミピクの完結漫画30作品から、今の気分に合う3作品を選びます。答えはいつでも変更できます。</p>
+              </div>
+              {diagnosisReady && (
+                <button type="button" onClick={() => {
+                  setDiagnosisAnswers({ mood: '', length: '', pace: '' })
+                  setCompareTitles([])
+                }}>やり直す</button>
+              )}
+            </div>
+
+            <div className="diagnosis-questions">
+              <fieldset>
+                <legend><b>Q1</b><span>今どんな気分？</span></legend>
+                <div>
+                  {[
+                    ['hot', '🔥 熱くなりたい'],
+                    ['emotional', '😭 心を動かされたい'],
+                    ['romance', '💕 キュンとしたい'],
+                    ['mystery', '🧠 謎・伏線を楽しみたい'],
+                  ].map(([value, label]) => (
+                    <button key={value} type="button" className={diagnosisAnswers.mood === value ? 'active' : ''} onClick={() => setDiagnosisAnswers((prev) => ({ ...prev, mood: value }))}>{label}</button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend><b>Q2</b><span>どのくらいの長さ？</span></legend>
+                <div>
+                  {[
+                    ['short', '⚡ 10巻以内'],
+                    ['medium', '📚 11〜20巻'],
+                    ['long', '🌙 21巻以上でもOK'],
+                  ].map(([value, label]) => (
+                    <button key={value} type="button" className={diagnosisAnswers.length === value ? 'active' : ''} onClick={() => setDiagnosisAnswers((prev) => ({ ...prev, length: value }))}>{label}</button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend><b>Q3</b><span>どう読みたい？</span></legend>
+                <div>
+                  {[
+                    ['binge', '🚀 一気読みしたい'],
+                    ['deep', '☕ じっくり浸りたい'],
+                    ['easy', '🌿 気軽に読みたい'],
+                  ].map(([value, label]) => (
+                    <button key={value} type="button" className={diagnosisAnswers.pace === value ? 'active' : ''} onClick={() => setDiagnosisAnswers((prev) => ({ ...prev, pace: value }))}>{label}</button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+
+            {!diagnosisReady ? (
+              <div className="diagnosis-waiting">
+                <Sparkles size={20} />
+                <span>3つ答えると、おすすめ3作品がここに出ます。</span>
+              </div>
+            ) : (
+              <div className="diagnosis-results">
+                <div className="diagnosis-result-title">
+                  <span>YOUR PICKS</span>
+                  <h3>今のあなたに、この3作品。</h3>
+                  <p>気になる2〜3作品を「比較に追加」すると、そのまま違いを見比べられます。</p>
+                </div>
+                <div className="diagnosis-result-grid">
+                  {diagnosisRecommendations.map((work, index) => {
+                    const comparing = compareTitles.includes(work.title)
+                    return (
+                      <article key={work.title}>
+                        <b>{index + 1}</b>
+                        <small>{work.category} ・ {work.volumes}</small>
+                        <h4>{work.title}</h4>
+                        <span>{work.author}</span>
+                        <p>{work.note}</p>
+                        <div>
+                          <a href={seriesHref({ type: 'manga', title: work.title })}>作品を見る <ChevronRight size={14} /></a>
+                          <button
+                            type="button"
+                            className={comparing ? 'selected' : ''}
+                            disabled={!comparing && compareTitles.length >= 3}
+                            onClick={() => toggleCompare(work)}
+                          >{comparing ? '比較から外す' : '比較に追加'}</button>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} />
+              </div>
+            )}
           </section>
         )}
 
@@ -1761,29 +1991,51 @@ export default function App() {
                       <option value="other">その他</option>
                     </select>
                   </label>
+                  <label>
+                    <span>並び順</span>
+                    <select value={completedSort} onChange={(event) => setCompletedSort(event.target.value)}>
+                      <option value="rank">おすすめ順</option>
+                      <option value="short">巻数が少ない順</option>
+                      <option value="long">巻数が多い順</option>
+                    </select>
+                  </label>
                   <strong>{filteredCompletedMangaPicks.length}作品</strong>
                   {(completedVolumeFilter !== 'all' || completedGenreFilter !== 'all') && (
                     <button type="button" onClick={() => { setCompletedVolumeFilter('all'); setCompletedGenreFilter('all') }}>絞り込みを解除</button>
                   )}
                 </div>
                 <div className="completed-pick-grid">
-                  {filteredCompletedMangaPicks.map((work) => (
-                    <a key={work.title} href={seriesHref({ type: 'manga', title: work.title })} className="completed-pick-card">
-                      <span className="completed-pick-rank">{completedMangaPicks.findIndex((item) => item.title === work.title) + 1}</span>
-                      <div>
-                        <div className="completed-pick-meta">
-                          <small>{work.category}</small>
-                          <b>{work.volumes}</b>
+                  {filteredCompletedMangaPicks.map((work) => {
+                    const comparing = compareTitles.includes(work.title)
+                    return (
+                      <article key={work.title} className={`completed-pick-card ${comparing ? 'comparing' : ''}`}>
+                        <span className="completed-pick-rank">{completedMangaPicks.findIndex((item) => item.title === work.title) + 1}</span>
+                        <a className="completed-pick-main" href={seriesHref({ type: 'manga', title: work.title })}>
+                          <div>
+                            <div className="completed-pick-meta">
+                              <small>{work.category}</small>
+                              <b>{work.volumes}</b>
+                            </div>
+                            <strong>{work.title}</strong>
+                            <span>{work.author}</span>
+                            <p>{work.note}</p>
+                            {work.volumeNote && <em className="completed-volume-detail">※ {work.volumeNote}</em>}
+                          </div>
+                        </a>
+                        <div className="completed-pick-controls">
+                          <button
+                            type="button"
+                            className={comparing ? 'selected' : ''}
+                            disabled={!comparing && compareTitles.length >= 3}
+                            onClick={() => toggleCompare(work)}
+                          >{comparing ? '比較中 ✓' : '比較'}</button>
+                          <a href={seriesHref({ type: 'manga', title: work.title })} aria-label={`${work.title}を見る`}><ChevronRight size={17} /></a>
                         </div>
-                        <strong>{work.title}</strong>
-                        <span>{work.author}</span>
-                        <p>{work.note}</p>
-                        {work.volumeNote && <em className="completed-volume-detail">※ {work.volumeNote}</em>}
-                      </div>
-                      <ChevronRight size={17} />
-                    </a>
-                  ))}
+                      </article>
+                    )
+                  })}
                 </div>
+                <MangaComparison works={compareWorks} onRemove={toggleCompare} onClear={clearComparison} />
                 <section className="completed-purpose-section" aria-labelledby="completed-purpose-title">
                   <h3 id="completed-purpose-title">目的別に完結漫画を探す</h3>
                   <div className="completed-purpose-grid">
